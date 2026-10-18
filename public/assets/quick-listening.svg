@@ -1,0 +1,56 @@
+<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="listen-bg" x1="10" y1="10" x2="70" y2="70" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#EFF2FE"/>
+      <stop offset="100%" stop-color="#E1E5FA"/>
+    </linearGradient>
+    <linearGradient id="mic-body" x1="30" y1="16" x2="50" y2="44" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#555A94"/>
+      <stop offset="50%" stop-color="#3A3E70"/>
+      <stop offset="100%" stop-color="#232655"/>
+    </linearGradient>
+    <linearGradient id="mic-stand" x1="34" y1="42" x2="46" y2="68" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#646AA4"/>
+      <stop offset="100%" stop-color="#3A3D73"/>
+    </linearGradient>
+    <filter id="listen-shadow" x="18" y="14" width="44" height="56" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="4" stdDeviation="3" flood-color="#232655" flood-opacity="0.16"/>
+    </filter>
+  </defs>
+
+  <!-- Container Surface -->
+  <rect x="4" y="4" width="72" height="72" rx="20" fill="url(#listen-bg)"/>
+
+  <!-- Sound Waves (Left & Right) -->
+  <path d="M22 28C20 32 20 36 22 40" stroke="#646AA4" stroke-width="2" stroke-linecap="round" stroke-opacity="0.5"/>
+  <path d="M17 24C14 30 14 38 17 44" stroke="#646AA4" stroke-width="2" stroke-linecap="round" stroke-opacity="0.3"/>
+
+  <path d="M58 28C60 32 60 36 58 40" stroke="#646AA4" stroke-width="2" stroke-linecap="round" stroke-opacity="0.5"/>
+  <path d="M63 24C66 30 66 38 63 44" stroke="#646AA4" stroke-width="2" stroke-linecap="round" stroke-opacity="0.3"/>
+
+  <!-- Vintage Microphone Assembly -->
+  <g filter="url(#listen-shadow)">
+    <!-- Stand Base -->
+    <ellipse cx="40" cy="65" rx="14" ry="4" fill="url(#mic-stand)"/>
+    <ellipse cx="40" cy="64" rx="10" ry="2.5" fill="#757BAE"/>
+    <!-- Vertical Stand Stem -->
+    <rect x="38" y="46" width="4" height="18" rx="2" fill="url(#mic-stand)"/>
+
+    <!-- U-Shaped Cradle Arm -->
+    <path d="M29 32C29 41 33 46 40 46C47 46 51 41 51 32" stroke="url(#mic-stand)" stroke-width="3.5" stroke-linecap="round"/>
+
+    <!-- Pill Microphone Capsule -->
+    <rect x="33" y="16" width="14" height="24" rx="7" fill="url(#mic-body)"/>
+
+    <!-- Metallic Grille Horizontal Slits -->
+    <line x1="36" y1="21" x2="44" y2="21" stroke="#8E93C5" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="36" y1="25" x2="44" y2="25" stroke="#8E93C5" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="36" y1="29" x2="44" y2="29" stroke="#8E93C5" stroke-width="1.5" stroke-linecap="round"/>
+
+    <!-- Central Accent Band -->
+    <rect x="33" y="32" width="14" height="2.5" fill="#FF6243"/>
+
+    <!-- Lower Capsule Shell -->
+    <line x1="37" y1="36" x2="43" y2="36" stroke="#4B5085" stroke-width="1.5" stroke-linecap="round"/>
+  </g>
+</svg>

@@ -1,0 +1,48 @@
+<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="vocab-bg" x1="10" y1="10" x2="70" y2="70" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#EFF2FE"/>
+      <stop offset="100%" stop-color="#E1E5FA"/>
+    </linearGradient>
+    <linearGradient id="notebook-cover" x1="22" y1="20" x2="58" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFE7D6"/>
+      <stop offset="100%" stop-color="#FED1B8"/>
+    </linearGradient>
+    <filter id="vocab-shadow" x="18" y="16" width="46" height="52" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="4" stdDeviation="3" flood-color="#232655" flood-opacity="0.14"/>
+    </filter>
+  </defs>
+
+  <!-- Container Surface -->
+  <rect x="4" y="4" width="72" height="72" rx="20" fill="url(#vocab-bg)"/>
+
+  <!-- Botanical Leaf on bottom-left -->
+  <path d="M21 58C18 53 20 46 25 44C27 49 25 55 21 58Z" fill="#10B981" fill-opacity="0.85"/>
+  <path d="M19 62C16 60 17 55 20 54C22 57 21 61 19 62Z" fill="#059669"/>
+
+  <!-- Notebook with Drop Shadow -->
+  <g filter="url(#vocab-shadow)">
+    <!-- Back pages stack -->
+    <rect x="25" y="19" width="34" height="44" rx="6" fill="#F4F5FB" stroke="#E0E3F4" stroke-width="1"/>
+    <!-- Notebook Cover -->
+    <rect x="22" y="21" width="34" height="42" rx="6" fill="url(#notebook-cover)"/>
+
+    <!-- Binding spine -->
+    <rect x="22" y="21" width="6" height="42" rx="2" fill="#E6A382"/>
+
+    <!-- "Aa" Monogram -->
+    <text x="35" y="47" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="18" font-weight="700" fill="#232655" letter-spacing="-0.5">Aa</text>
+
+    <!-- Ruled lines under text -->
+    <line x1="33" y1="52" x2="49" y2="52" stroke="#E6A382" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="33" y1="56" x2="44" y2="56" stroke="#E6A382" stroke-width="1.5" stroke-linecap="round"/>
+  </g>
+
+  <!-- Pencil leaning on top right -->
+  <g transform="rotate(28 58 24)">
+    <rect x="54" y="14" width="5" height="24" rx="1.5" fill="#F5A623"/>
+    <path d="M54 14L56.5 8L59 14H54Z" fill="#FCD7B8"/>
+    <path d="M55.5 10L56.5 8L57.5 10H55.5Z" fill="#232655"/>
+    <rect x="54" y="34" width="5" height="4" rx="1" fill="#FF8A65"/>
+  </g>
+</svg>

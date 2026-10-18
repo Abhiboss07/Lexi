@@ -1,0 +1,50 @@
+<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="book-bg" x1="10" y1="10" x2="70" y2="70" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#EFF2FE"/>
+      <stop offset="100%" stop-color="#E1E5FA"/>
+    </linearGradient>
+    <linearGradient id="book-cover" x1="16" y1="28" x2="64" y2="66" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#464A85"/>
+      <stop offset="100%" stop-color="#232655"/>
+    </linearGradient>
+    <linearGradient id="book-page-left" x1="20" y1="30" x2="40" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#F2F3FB"/>
+    </linearGradient>
+    <linearGradient id="book-page-right" x1="40" y1="30" x2="60" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#E8EAF6"/>
+    </linearGradient>
+    <filter id="stories-shadow" x="12" y="24" width="56" height="46" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="4" stdDeviation="3" flood-color="#232655" flood-opacity="0.16"/>
+    </filter>
+  </defs>
+
+  <!-- Container Surface -->
+  <rect x="4" y="4" width="72" height="72" rx="20" fill="url(#book-bg)"/>
+
+  <!-- Book with Drop Shadow -->
+  <g filter="url(#stories-shadow)">
+    <!-- Hardcover base -->
+    <path d="M16 57C24 53 36 53 40 57C44 53 56 53 64 57V33C56 29 44 29 40 33C36 29 24 29 16 33V57Z" fill="url(#book-cover)"/>
+
+    <!-- Left open pages -->
+    <path d="M18 54C25 50.5 35 50.5 39 54V30.5C35 27 25 27 18 30.5V54Z" fill="url(#book-page-left)"/>
+    <path d="M22 36H35M22 41H33M22 46H35" stroke="#C5C9E6" stroke-width="1.5" stroke-linecap="round"/>
+
+    <!-- Right open pages -->
+    <path d="M41 54C45 50.5 55 50.5 62 54V30.5C55 27 45 27 41 30.5V54Z" fill="url(#book-page-right)"/>
+    <path d="M45 36H58M47 41H58M45 46H56" stroke="#C5C9E6" stroke-width="1.5" stroke-linecap="round"/>
+
+    <!-- Spine shadow -->
+    <path d="M39 31V54.5C39.5 54.8 40.5 54.8 41 54.5V31C40.5 30.8 39.5 30.8 39 31Z" fill="#323565"/>
+
+    <!-- Coral Bookmark Ribbon -->
+    <path d="M40 33V50L43 47L46 50V33H40Z" fill="#FF6243"/>
+  </g>
+
+  <!-- Golden Story Sparkle -->
+  <path d="M57 18L58.5 22L62.5 23.5L58.5 25L57 29L55.5 25L51.5 23.5L55.5 22L57 18Z" fill="#F5A623"/>
+  <circle cx="21" cy="22" r="1.5" fill="#646AA4"/>
+</svg>

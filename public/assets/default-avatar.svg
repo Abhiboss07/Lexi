@@ -1,0 +1,52 @@
+<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="avatar-bg" x1="10" y1="10" x2="70" y2="70" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#E8ECFC"/>
+      <stop offset="100%" stop-color="#D5DCF7"/>
+    </linearGradient>
+    <linearGradient id="avatar-jacket" x1="20" y1="52" x2="60" y2="76" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3A3D73"/>
+      <stop offset="100%" stop-color="#232655"/>
+    </linearGradient>
+    <filter id="avatar-glow" x="2" y="2" width="76" height="76" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#232655" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <!-- Circular Base Container with Glow -->
+  <g filter="url(#avatar-glow)">
+    <circle cx="40" cy="40" r="36" fill="url(#avatar-bg)" stroke="#ECEEFE" stroke-width="2"/>
+  </g>
+
+  <!-- Clip Path to Circle -->
+  <g clip-path="url(#avatar-clip)">
+    <!-- Neck -->
+    <rect x="36" y="44" width="8" height="12" rx="2" fill="#F6C5A1"/>
+
+    <!-- Shoulders / Jacket -->
+    <path d="M18 76C18 60 27 52 40 52C53 52 62 60 62 76H18Z" fill="url(#avatar-jacket)"/>
+    <!-- Collar -->
+    <path d="M34 52L40 60L46 52" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"/>
+
+    <!-- Head & Face -->
+    <ellipse cx="40" cy="36" rx="14" ry="16" fill="#FCD7B8"/>
+
+    <!-- Hair -->
+    <path d="M26 34C26 22 31 16 40 16C49 16 54 22 54 34C54 35 52 35 50 33C48 31 46 27 40 27C34 27 32 31 30 33C28 35 26 35 26 34Z" fill="#2E2438"/>
+
+    <!-- Friendly Smile -->
+    <path d="M37 42C38.5 44 41.5 44 43 42" stroke="#C4785A" stroke-width="2" stroke-linecap="round"/>
+
+    <!-- Eyes -->
+    <ellipse cx="34" cy="36" rx="1.8" ry="2.2" fill="#2E2438"/>
+    <ellipse cx="46" cy="36" rx="1.8" ry="2.2" fill="#2E2438"/>
+
+    <!-- Subtle Eyebrows -->
+    <path d="M32 32C33.5 31.5 35.5 31.5 37 32" stroke="#2E2438" stroke-width="1.2" stroke-linecap="round"/>
+    <path d="M43 32C44.5 31.5 46.5 31.5 48 32" stroke="#2E2438" stroke-width="1.2" stroke-linecap="round"/>
+  </g>
+
+  <clipPath id="avatar-clip">
+    <circle cx="40" cy="40" r="35"/>
+  </clipPath>
+</svg>

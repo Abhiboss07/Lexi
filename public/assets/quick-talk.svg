@@ -1,0 +1,49 @@
+<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="talk-bg" x1="10" y1="10" x2="70" y2="70" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#EFF2FE"/>
+      <stop offset="100%" stop-color="#E1E5FA"/>
+    </linearGradient>
+    <linearGradient id="talk-hoodie" x1="24" y1="48" x2="56" y2="74" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3A3D73"/>
+      <stop offset="100%" stop-color="#232655"/>
+    </linearGradient>
+    <linearGradient id="talk-bubble" x1="42" y1="12" x2="72" y2="38" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#646AA4"/>
+      <stop offset="100%" stop-color="#4B5085"/>
+    </linearGradient>
+    <filter id="talk-shadow" x="38" y="10" width="38" height="34" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#232655" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <!-- Container Surface -->
+  <rect x="4" y="4" width="72" height="72" rx="20" fill="url(#talk-bg)"/>
+
+  <!-- Character Head & Hair -->
+  <circle cx="40" cy="34" r="14" fill="#FCD7B8"/>
+  <!-- Hair -->
+  <path d="M28 32C28 23 33 18 41 18C48 18 52 22 52 28C52 32 50 34 48 34C46 34 45 31 43 31C41 31 40 33 37 33C33 33 30 35 28 36V32Z" fill="#2E2438"/>
+
+  <!-- Headphones -->
+  <path d="M26 31C26 22 32 16 40 16C48 16 54 22 54 31" stroke="#484C82" stroke-width="3" stroke-linecap="round"/>
+  <!-- Headphone earcups -->
+  <rect x="23" y="28" width="5" height="11" rx="2.5" fill="#232655"/>
+  <rect x="52" y="28" width="5" height="11" rx="2.5" fill="#232655"/>
+
+  <!-- Body / Hoodie -->
+  <path d="M22 68C22 56 30 48 40 48C50 48 58 56 58 68H22Z" fill="url(#talk-hoodie)"/>
+  <!-- Inner shirt collar -->
+  <path d="M36 48L40 55L44 48" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Floating Speech Bubble -->
+  <g filter="url(#talk-shadow)">
+    <rect x="42" y="13" width="28" height="20" rx="9" fill="url(#talk-bubble)"/>
+    <!-- Tail -->
+    <path d="M46 32L43 37L51 32H46Z" fill="#4B5085"/>
+    <!-- Chat wave / dots -->
+    <circle cx="50" cy="23" r="2" fill="#FFFFFF"/>
+    <circle cx="56" cy="23" r="2" fill="#FFFFFF"/>
+    <circle cx="62" cy="23" r="2" fill="#FFFFFF"/>
+  </g>
+</svg>
