@@ -140,41 +140,48 @@ class ResilientAIEngine implements AIProvider {
 
 ---
 
-## ADR-005: Visual Fidelity & Design Token System (Lavender `#FAFAFE` & Indigo `#30335F`)
+## ADR-005: Visual Fidelity & Design Token System (Lavender `#F6F7FE`, Deep Indigo `#232655`, Periwinkle `#646AA4`)
 
 ### Context
-The approved visual reference provides a distinct, elegant aesthetic:
-- Pale lavender canvas (`#FAFAFE`) with soft lavender structural borders (`#E3E6FF`).
-- Pure white rounded cards (`#FFFFFF`).
-- Deep indigo primary accents, buttons, and high-contrast typography (`#30335F`).
-- Gentle rounded radii (cards: 24px-28px, buttons: 16px-20px).
-- Friendly character illustrations with soft shadows.
-- No harsh pure blacks or generic neon dashboard styling.
-- Previous wine red (`#7F011F`) and light sand (`#F5EBD0`) themes are explicitly forbidden.
+The authoritative visual reference is the custom two-screen Lexi UI concept (`docs/design/approved_reference.png`, 1222×1287px):
+- **Staging Canvas**: Pale Lavender tint (`#E7EAFD`)
+- **App Screen Background**: Pale Lavender-White (`#F6F7FE`)
+- **Card Surfaces**: Pure White (`#FFFFFF`) and Lavender Tint (`#F0F2FD`)
+- **Primary Brand Indigo**: Deep Indigo (`#232655`, hover `#181A3C`) for primary CTAs ("Start Learning →", "Continue →") and active bottom navigation
+- **Accent Periwinkle**: Soft Periwinkle (`#646AA4`) for "Your Way" highlight, active carousel pill, and brand sparkle
+- **Streak Flame**: Vibrant Coral-Orange (`#FF6243`) with amber glow
+- **Controlled Radii**: Cards (`24px-28px` / `rounded-3xl`), buttons (`rounded-full`), shortcut tiles (`16px` / `rounded-xl`)
+- **Atmospheric Artwork**: High-quality 3D anime character art (student reading with kitten; celebrating girl with glasses) and rich café photography
+- **Strict Theme Guard**: The previously rejected Wine Red (`#7F011F`) and Light Sand (`#F5EBD0`) themes remain strictly excluded.
 
 ### Decision
-We codify the approved reference palette into centralized CSS design tokens in Tailwind and CSS custom properties:
+We codify the verified reference palette into centralized CSS design tokens in Tailwind and CSS custom properties:
 
 ```css
 :root {
   /* Canvas & Surfaces */
-  --color-canvas: #FAFAFE;
-  --color-surface: #FFFFFF;
-  --color-surface-subtle: #F3F4FD;
-  --color-border: #E3E6FF;
+  --color-canvas-staging: #E7EAFD;
+  --color-canvas-screen: #F6F7FE;
+  --color-surface-white: #FFFFFF;
+  --color-surface-lavender: #F0F2FD;
+  --color-surface-subtle: #EFF1FE;
+  --color-surface-quote: #FEF7ED;
   --color-border-subtle: #ECEEFE;
+  --color-border-medium: #E0E3F8;
 
   /* Brand Accents */
-  --color-brand-indigo: #30335F;
-  --color-brand-indigo-hover: #25284B;
-  --color-brand-indigo-light: #4A4E85;
-  --color-accent-lavender: #E4E7FF;
-  --color-accent-gold: #F5A623; /* Streak flame accent */
+  --color-brand-indigo: #232655;
+  --color-brand-indigo-dark: #1B1E48;
+  --color-brand-indigo-hover: #181A3C;
+  --color-accent-periwinkle: #646AA4;
+  --color-accent-pill-lavender: #E2E0FE;
+  --color-accent-streak-flame: #FF6243;
+  --color-accent-gold: #F5A623;
 
   /* Text & Typography */
-  --color-text-primary: #1E2042;
+  --color-text-primary: #222149;
   --color-text-secondary: #6B7094;
-  --color-text-tertiary: #9AA0C2;
+  --color-text-tertiary: #8E93B8;
   --color-text-inverse: #FFFFFF;
 
   /* Semantic Feedback */
