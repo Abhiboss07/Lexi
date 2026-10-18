@@ -1,0 +1,143 @@
+import type { 
+  AdventureCategory, 
+  AdventureScenario, 
+  JourneyCurriculumUnit, 
+  PopularModule 
+} from '../types';
+
+export const ADVENTURE_CATEGORIES: AdventureCategory[] = [
+  'All',
+  'Daily Life',
+  'Travel',
+  'Career',
+  'Fun',
+];
+
+export const CURRENT_JOURNEY_UNIT: JourneyCurriculumUnit = {
+  unitNumber: 3,
+  unitLabel: 'UNIT 3 • GRAMMAR',
+  title: 'Present vs Past',
+  subtitle: 'Understand and use tenses in real situations.',
+  description: 'Master how to transition smoothly between describing ongoing daily habits and sharing past experiences without pausing.',
+  progressPercent: 60,
+  totalLessons: 10,
+  completedLessons: 6,
+  nextLessonTitle: 'Lesson 7: Irregular Past Verbs in Conversation',
+};
+
+export const ADVENTURE_SCENARIOS: AdventureScenario[] = [
+  {
+    id: 'at-the-airport',
+    title: 'At the Airport',
+    subtitle: 'Navigate, ask, and handle travel situations.',
+    category: 'Travel',
+    difficulty: 'Beginner',
+    duration: '5-7 min',
+    badgeLabel: 'Travel',
+    description: 'Practice checking in luggage, asking for your departure gate, and understanding boarding announcements.',
+    iconType: 'plane',
+    samplePrompt: 'Agent: "Good morning! Can I see your passport and booking reference, please?"',
+  },
+  {
+    id: 'shopping-day',
+    title: 'Shopping Day',
+    subtitle: 'Learn useful phrases while shopping.',
+    category: 'Daily Life',
+    difficulty: 'Beginner',
+    duration: '4-6 min',
+    badgeLabel: 'Daily Life',
+    description: 'Ask for different sizes, inquire about discounts, and complete a payment conversation politely.',
+    iconType: 'shopping',
+    samplePrompt: 'Sales Associate: "Hello! Are you looking for anything in particular today, or just browsing?"',
+  },
+  {
+    id: 'job-interview',
+    title: 'Job Interview',
+    subtitle: 'Build confidence for real interviews.',
+    category: 'Career',
+    difficulty: 'Intermediate',
+    duration: '7-10 min',
+    badgeLabel: 'Career',
+    description: 'Articulate your professional strengths, describe past accomplishments, and ask thoughtful questions to the interviewer.',
+    iconType: 'briefcase',
+    samplePrompt: 'Interviewer: "Welcome! To start off, could you tell us briefly about a project you are particularly proud of?"',
+  },
+  {
+    id: 'bakery-morning',
+    title: 'Morning Bakery',
+    subtitle: 'Order fresh coffee, bread, and pastries.',
+    category: 'Daily Life',
+    difficulty: 'Beginner',
+    duration: '3-5 min',
+    badgeLabel: 'Daily Life',
+    description: 'Order your morning roast, ask about dietary ingredients, and practice casual local morning banter.',
+    iconType: 'coffee',
+    samplePrompt: 'Barista: "Morning! What can I get started for you today?"',
+  },
+  {
+    id: 'at-the-restaurant',
+    title: 'At the Restaurant',
+    subtitle: 'Practise ordering meals, asking about the menu, and speaking politely with restaurant staff.',
+    category: 'Daily Life',
+    difficulty: 'Beginner',
+    duration: '4-6 min',
+    badgeLabel: 'Daily Life',
+    description: 'Practise ordering meals, asking about the menu, and speaking politely with restaurant staff.',
+    iconType: 'utensils',
+    samplePrompt: 'Server: "Good evening! Welcome to The Olive Tree. Table for two tonight?"',
+  },
+  {
+    id: 'weekend-getaway',
+    title: 'Weekend Getaway',
+    subtitle: 'Explore local sights and book excursions.',
+    category: 'Fun',
+    difficulty: 'Intermediate',
+    duration: '6-8 min',
+    badgeLabel: 'Fun',
+    description: 'Ask locals for secret viewpoint spots, purchase museum tickets, and navigate local transit.',
+    iconType: 'compass',
+    samplePrompt: 'Local Guide: "If you have free time this afternoon, I strongly recommend the scenic river walk!"',
+  },
+];
+
+export const POPULAR_MODULES: PopularModule[] = [
+  {
+    id: 'night-study-reading',
+    title: 'Night Study & Reflections',
+    subtitle: 'Relaxing short story with audio narration',
+    category: 'Stories',
+    duration: '10 min',
+    difficulty: 'Intermediate',
+    description: 'An atmospheric short story about a university student discovering an ancient library manuscript, with dual-speed narration.',
+    iconName: 'book-open',
+  },
+  {
+    id: 'trail-crossroads',
+    title: 'Crossroads: Making Decisions',
+    subtitle: 'Interactive speaking & critical thinking',
+    category: 'Speaking',
+    duration: '6 min',
+    difficulty: 'Beginner',
+    description: 'Practice weighing pros and cons out loud, using modal verbs of advice (should, ought to, might as well).',
+    iconName: 'mic',
+  },
+  {
+    id: 'language-exchange-cafe',
+    title: 'Language Exchange Café',
+    subtitle: 'Casual meetup conversation simulation',
+    category: 'Conversation',
+    duration: '8 min',
+    difficulty: 'All Levels',
+    description: 'Meet conversation partners from around the world, break the ice, and practice natural follow-up questions.',
+    iconName: 'message-circle',
+  },
+];
+
+export const TODAYS_WORD_DATA = {
+  word: 'confident',
+  partOfSpeech: 'adjective',
+  phonetic: '/ˈkɒnfɪdənt/',
+  definition: 'Feeling sure about your abilities, qualities, or self.',
+  exampleSentence: 'She felt confident before the interview.',
+  grammarNote: 'Collocates with "in" (confident in her skills) or "about" (confident about the outcome).',
+};
