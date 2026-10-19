@@ -22,6 +22,7 @@ import type { PracticeDifficulty, PracticeSessionLength } from '../../types/prac
 import { DIFFICULTY_DESCRIPTIONS, SESSION_LENGTH_MINUTES } from '../../types/practicePreferences';
 import { practiceRepository } from '../../db/practiceRepository';
 import { vocabularyRepository } from '../../db/vocabularyRepository';
+import { dailyPracticeService, getLocalDateString } from '../../services/dailyPracticeService';
 
 export interface ConversationScenario {
   id: string;
@@ -281,7 +282,7 @@ export const ConversationCoachModal: React.FC<ConversationCoachModalProps> = ({
     setInputText('');
 
     // Record progress activity
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = getLocalDateString();
     practiceRepository.recordSession({
       userId,
       category: 'conversation',
@@ -292,6 +293,7 @@ export const ConversationCoachModal: React.FC<ConversationCoachModalProps> = ({
       score: 90,
       notes: `Daily Conversation practice: ${selectedTopic.title}`,
     }).catch(console.error);
+    dailyPracticeService.recordDailyCompletion(userId, 'speaking', 90).catch(console.error);
 
     // AI Partner contextual response generator with tailored CEFR level feedback
     setTimeout(() => {
@@ -335,7 +337,7 @@ export const ConversationCoachModal: React.FC<ConversationCoachModalProps> = ({
   const handleFinishConversation = async () => {
     setShowEvaluationReport(true);
     try {
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = getLocalDateString();
       await practiceRepository.recordSession({
         userId,
         category: 'conversation',
@@ -346,6 +348,7 @@ export const ConversationCoachModal: React.FC<ConversationCoachModalProps> = ({
         score: 94,
         notes: `AI Conversation Coach completed with ${selectedTopic.partner}. Scenario: ${selectedTopic.title}. Turns: ${userMessageCount}.`,
       });
+      await dailyPracticeService.recordDailyCompletion(userId, 'speaking', 94);
     } catch (err) {
       console.warn('Failed to record conversation session:', err);
     }
