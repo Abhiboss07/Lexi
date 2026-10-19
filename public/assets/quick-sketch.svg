@@ -1,0 +1,39 @@
+<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sketch-bg" x1="10" y1="10" x2="70" y2="70" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#EFF2FE"/>
+      <stop offset="100%" stop-color="#E1E5FA"/>
+    </linearGradient>
+    <linearGradient id="sketch-board" x1="18" y1="20" x2="62" y2="62" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#F4F6FE"/>
+    </linearGradient>
+    <filter id="sketch-shadow" x="14" y="16" width="52" height="50" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="3" stdDeviation="2.5" flood-color="#232655" flood-opacity="0.14"/>
+    </filter>
+  </defs>
+
+  <!-- Container Surface -->
+  <rect x="4" y="4" width="72" height="72" rx="20" fill="url(#sketch-bg)"/>
+
+  <!-- Canvas Board -->
+  <g filter="url(#sketch-shadow)">
+    <rect x="18" y="18" width="44" height="42" rx="10" fill="url(#sketch-board)" stroke="#D6DAF8" stroke-width="1.5"/>
+    
+    <!-- Colorful Swatches / Dots -->
+    <circle cx="28" cy="27" r="3" fill="#6366F1"/>
+    <circle cx="37" cy="27" r="3" fill="#EC4899"/>
+    <circle cx="46" cy="27" r="3" fill="#10B981"/>
+    <circle cx="54" cy="27" r="3" fill="#F59E0B"/>
+
+    <!-- Wave / Sketch Stroke -->
+    <path d="M26 44C30 38 35 48 40 42C44 37 49 43 54 39" stroke="#232655" stroke-width="3" stroke-linecap="round"/>
+  </g>
+
+  <!-- Paintbrush / Stylus -->
+  <g transform="translate(46, 52) rotate(-45)">
+    <rect x="0" y="0" width="5" height="22" rx="2" fill="#232655"/>
+    <rect x="0" y="0" width="5" height="6" rx="1" fill="#C5C9EB"/>
+    <path d="M0 22C0 25 2.5 28 2.5 28C2.5 28 5 25 5 22H0Z" fill="#6366F1"/>
+  </g>
+</svg>

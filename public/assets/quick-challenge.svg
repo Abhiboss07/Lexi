@@ -1,0 +1,35 @@
+<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="chal-bg" x1="10" y1="10" x2="70" y2="70" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#EFF2FE"/>
+      <stop offset="100%" stop-color="#E1E5FA"/>
+    </linearGradient>
+    <linearGradient id="chal-flag" x1="38" y1="14" x2="62" y2="34" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FF6243"/>
+      <stop offset="100%" stop-color="#E04627"/>
+    </linearGradient>
+    <filter id="chal-shadow" x="14" y="16" width="52" height="52" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="3" stdDeviation="2.5" flood-color="#232655" flood-opacity="0.16"/>
+    </filter>
+  </defs>
+
+  <!-- Container Surface -->
+  <rect x="4" y="4" width="72" height="72" rx="20" fill="url(#chal-bg)"/>
+
+  <!-- Target Rings -->
+  <g filter="url(#chal-shadow)">
+    <!-- Outer Ring -->
+    <circle cx="40" cy="45" r="21" fill="#FFFFFF" stroke="#D6DAF8" stroke-width="1.5"/>
+    <!-- Middle Ring -->
+    <circle cx="40" cy="45" r="14" fill="#EFF2FE"/>
+    <!-- Inner Bullseye -->
+    <circle cx="40" cy="45" r="7" fill="#232655"/>
+    <circle cx="40" cy="45" r="2.5" fill="#FFFFFF"/>
+
+    <!-- Flagpole planted in center -->
+    <path d="M40 45V18" stroke="#3A3D73" stroke-width="2.5" stroke-linecap="round"/>
+    <!-- Pennant / Victory Flag -->
+    <path d="M40 18L58 25L40 32V18Z" fill="url(#chal-flag)"/>
+    <circle cx="40" cy="18" r="2.5" fill="#FBBF24"/>
+  </g>
+</svg>

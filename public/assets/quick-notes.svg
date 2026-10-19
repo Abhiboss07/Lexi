@@ -1,0 +1,40 @@
+<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="notes-bg" x1="10" y1="10" x2="70" y2="70" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#EFF2FE"/>
+      <stop offset="100%" stop-color="#E1E5FA"/>
+    </linearGradient>
+    <linearGradient id="notes-cover" x1="22" y1="18" x2="58" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#F1F3FD"/>
+    </linearGradient>
+    <linearGradient id="notes-pen" x1="46" y1="40" x2="64" y2="22" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3A3D73"/>
+      <stop offset="100%" stop-color="#232655"/>
+    </linearGradient>
+    <filter id="notes-shadow" x="18" y="16" width="44" height="52" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="3" stdDeviation="2.5" flood-color="#232655" flood-opacity="0.14"/>
+    </filter>
+  </defs>
+
+  <!-- Container Surface -->
+  <rect x="4" y="4" width="72" height="72" rx="20" fill="url(#notes-bg)"/>
+
+  <!-- Notepad Document -->
+  <g filter="url(#notes-shadow)">
+    <rect x="22" y="18" width="36" height="46" rx="8" fill="url(#notes-cover)" stroke="#D6DAF8" stroke-width="1.5"/>
+    <!-- Yellow Ribbon Bookmark -->
+    <path d="M28 18V30L33 26L38 30V18H28Z" fill="#F59E0B"/>
+    <!-- Ruled lines -->
+    <rect x="30" y="36" width="20" height="2.5" rx="1.25" fill="#646AA4"/>
+    <rect x="30" y="42" width="20" height="2.5" rx="1.25" fill="#A4A9D4"/>
+    <rect x="30" y="48" width="14" height="2.5" rx="1.25" fill="#CBD0F2"/>
+  </g>
+
+  <!-- Angled Stylus / Pencil -->
+  <g transform="translate(48, 44) rotate(-35)">
+    <rect x="0" y="0" width="6" height="24" rx="2" fill="url(#notes-pen)"/>
+    <path d="M0 24L3 29L6 24H0Z" fill="#FCD7B8"/>
+    <path d="M2 27L3 29L4 27H2Z" fill="#232655"/>
+  </g>
+</svg>

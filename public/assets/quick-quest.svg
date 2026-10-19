@@ -1,0 +1,38 @@
+<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="quest-bg" x1="10" y1="10" x2="70" y2="70" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#EFF2FE"/>
+      <stop offset="100%" stop-color="#E1E5FA"/>
+    </linearGradient>
+    <linearGradient id="quest-pad" x1="20" y1="28" x2="60" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3A3D73"/>
+      <stop offset="100%" stop-color="#232655"/>
+    </linearGradient>
+    <linearGradient id="quest-star" x1="48" y1="14" x2="68" y2="34" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FBBF24"/>
+      <stop offset="100%" stop-color="#F59E0B"/>
+    </linearGradient>
+    <filter id="quest-shadow" x="14" y="24" width="52" height="42" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="3" stdDeviation="2.5" flood-color="#232655" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <!-- Container Surface -->
+  <rect x="4" y="4" width="72" height="72" rx="20" fill="url(#quest-bg)"/>
+
+  <!-- Gamepad Body -->
+  <g filter="url(#quest-shadow)">
+    <rect x="18" y="30" width="44" height="28" rx="14" fill="url(#quest-pad)"/>
+    <!-- D-pad (Left) -->
+    <rect x="25" y="41" width="10" height="4" rx="2" fill="#E2E6FD"/>
+    <rect x="28" y="38" width="4" height="10" rx="2" fill="#E2E6FD"/>
+    <!-- Action buttons (Right) -->
+    <circle cx="50" cy="41" r="2.5" fill="#F87171"/>
+    <circle cx="56" cy="45" r="2.5" fill="#60A5FA"/>
+    <circle cx="44" cy="45" r="2.5" fill="#34D399"/>
+    <circle cx="50" cy="49" r="2.5" fill="#FBBF24"/>
+  </g>
+
+  <!-- Floating Achievement Sparkle Star -->
+  <path d="M52 14L54.2 19.8L60 22L54.2 24.2L52 30L49.8 24.2L44 22L49.8 19.8L52 14Z" fill="url(#quest-star)"/>
+</svg>
