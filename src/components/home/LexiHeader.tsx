@@ -1,5 +1,6 @@
 import React from 'react';
 import { Search } from 'lucide-react';
+import { LexiLogoSymbol } from '../common/LexiLogo';
 
 interface LexiHeaderProps {
   streakCount: number;
@@ -17,19 +18,22 @@ export const LexiHeader: React.FC<LexiHeaderProps> = ({
   return (
     <header className="flex items-center justify-between pt-3 pb-4 px-1" role="banner">
       {/* Brand Identity */}
-      <div>
-        <div className="flex items-center gap-1.5">
-          <span className="text-[26px] font-extrabold tracking-tight text-[#222149]">
-            Lexi
-          </span>
-          {/* Brand Sparkle ✦ */}
-          <span className="text-[#646AA4] text-[18px] select-none" aria-hidden="true">
-            ✦
-          </span>
+      <div className="flex items-center gap-2.5">
+        <LexiLogoSymbol size={34} className="hover:scale-105 transition-transform" />
+        <div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[24px] sm:text-[26px] font-extrabold tracking-tight text-[#222149]">
+              Lexi
+            </span>
+            {/* Brand Sparkle ✦ */}
+            <span className="text-[#646AA4] text-[18px] select-none" aria-hidden="true">
+              ✦
+            </span>
+          </div>
+          <p className="text-[12px] font-medium text-[#7D82A8] -mt-0.5 tracking-wide">
+            Your English Companion
+          </p>
         </div>
-        <p className="text-[12px] font-medium text-[#7D82A8] -mt-0.5 tracking-wide">
-          Your English Companion
-        </p>
       </div>
 
       {/* Action Controls */}

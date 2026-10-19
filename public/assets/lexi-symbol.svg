@@ -1,0 +1,22 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="lexi-sym-grad-primary" x1="8" y1="8" x2="38" y2="40" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#4338CA" />
+      <stop offset="60%" stopColor="#232655" />
+      <stop offset="100%" stopColor="#1E1C44" />
+    </linearGradient>
+    <linearGradient id="lexi-sym-grad-accent" x1="16" y1="12" x2="38" y2="34" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#818CF8" />
+      <stop offset="100%" stopColor="#646AA4" />
+    </linearGradient>
+    <linearGradient id="lexi-sym-spark-grad" x1="33" y1="6" x2="41" y2="14" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#FF8A65" />
+      <stop offset="100%" stopColor="#FF6243" />
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="40" height="40" rx="12" fill="#F0F2FE" stroke="#E0E3FA" stroke-width="1.5" />
+  <path d="M15 13C15 11.8954 15.8954 11 17 11H19C20.1046 11 21 11.8954 21 13V27.5C21 28.3284 21.6716 29 22.5 29H32C33.1046 29 34 29.8954 34 31C34 32.1046 33.1046 33 32 33H19C16.7909 33 15 31.2091 15 29V13Z" fill="url(#lexi-sym-grad-primary)" />
+  <path d="M23 15.5C23 14.1193 24.1193 13 25.5 13H28.5C31.5376 13 34 15.4624 34 18.5C34 21.5376 31.5376 24 28.5 24H25.5C24.1193 24 23 22.8807 23 21.5V15.5Z" fill="url(#lexi-sym-grad-accent)" fill-opacity="0.9" />
+  <path d="M24 24L21.5 26.5V23.5L24 24Z" fill="url(#lexi-sym-grad-accent)" />
+  <path d="M37 6C37 9 39.5 11 42 11C39.5 11 37 13 37 16C37 13 34.5 11 32 11C34.5 11 37 9 37 6Z" fill="url(#lexi-sym-spark-grad)" />
+</svg>
