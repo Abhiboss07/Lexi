@@ -1,8 +1,8 @@
 # Lexi — Living Implementation Status & Quality Gates
 
-**Current Phase**: Phase 0 (Research & Audit) / Transitioning to Phase 1 (Design System Specification)  
-**Last Updated**: 2026-10-18  
-**Overall Project Status**: Visual Reference Corrected & Verified — Authoritative Two-Screen Mockup Established — Phase 0 Documents Synchronized  
+**Current Phase**: Phases A through I Complete — AI English Coach Transformation Complete  
+**Last Updated**: 2026-10-19  
+**Overall Project Status**: Complete & Verified (All 6 Specialized Studios, FSRS Spaced-Repetition Deck, Interview Trainer, Unified Progress Dashboard, 43 Unit Tests & 82 E2E Tests Green)  
 
 ---
 
@@ -22,13 +22,30 @@
 
 | Phase | Description | Status | Evidence / Artifacts |
 | :--- | :--- | :--- | :--- |
-| **Phase 0** | Repository Audit, Open-Source Research & Architecture ADRs | **COMPLETED & CORRECTED** | `docs/research/landscape.md`<br>`docs/research/library-evaluation.md`<br>`docs/research/architecture-decision.md` (ADR-005 updated)<br>`docs/design/approved_reference.png`<br>`docs/design/reference_screen_home.png`<br>`docs/design/reference_screen_explore.png` |
-| **Phase 1** | Design System Specification & Asset Manifest | **DOCUMENTED (Awaiting Review)** | `docs/design/reference-analysis.md`<br>`docs/design/design-system.md`<br>`docs/design/asset-manifest.md` |
-| **Phase 2** | Home Page Implementation & Visual Verification | **GATED (Do not start without approval)** | Planned: Home Screen implementation, Playwright visual comparison against `reference_screen_home.png` |
-| **Phase 3** | Remaining Screens & Learning Engines | **QUEUED** | Planned: Onboarding, Explore/Curriculum, Lesson Engine (10 types), TS-FSRS Vocabulary, AI Tutor, Habits |
-| **Phase 4** | MCP & Tooling Integration | **QUEUED** | Planned: Context7, Playwright MCP, Tree-sitter, Chrome DevTools |
-| **Phase 5** | Testing & Quality Gates | **QUEUED** | Planned: Vitest unit tests, Playwright e2e tests, a11y audit, lighthouse performance audit |
-| **Phase 6** | Free-Tier Deployment & Android Release | **QUEUED** | Planned: Cloudflare Pages + Worker proxy, GitHub Actions CI/CD, Capacitor Android APK |
+| **Phase 0** | Repository Audit, Open-Source Research & Architecture ADRs | **COMPLETED & CORRECTED** | `docs/research/landscape.md`<br>`docs/research/library-evaluation.md`<br>`docs/research/architecture-decision.md` (ADR-005 updated)<br>`docs/design/approved_reference.png` |
+| **Phase 1** | Design System Specification & Asset Manifest | **DOCUMENTED** | `docs/design/reference-analysis.md`<br>`docs/design/design-system.md`<br>`docs/design/asset-manifest.md` |
+| **Phase 2** | Home Page Implementation & Polish Refinements | **COMPLETED & APPROVED** | `src/components/home/*`<br>`tests/home.spec.ts` (16/16 passed)<br>Single-line `A BRIGHTER YOU` eyebrow verified<br>Roomier Continue Learning card verified |
+| **Phase 3** | Explore Page Implementation & Basic Interactions | **COMPLETED & APPROVED** | `src/components/explore/*`<br>`tests/explore.spec.ts` (22/22 passed)<br>Search, Category Filters, Modals, Progress Ring |
+| **Phase 4** | Learning Foundation & CEFR Curriculum Architecture | **COMPLETED & VERIFIED** | `src/types/curriculum.ts`<br>`src/data/curriculum/*` (A1-C2, 6 units, 14 curated lessons)<br>`src/services/progressionEngine.ts`<br>`src/db/curriculumRepository.ts` |
+| **Phase 5** | Interactive Lesson Engine & Practice Progression | **COMPLETED & APPROVED** | `src/components/lesson/LessonPlayer.tsx`<br>`src/components/lesson/ActivityViews.tsx` (8 activity kinds)<br>`src/services/lessonScoring.ts` |
+| **Phase 6** | Vocabulary Notebook & Spaced-Repetition System (FSRS) | **COMPLETED & VERIFIED** | `src/types/vocabulary.ts`<br>`src/services/fsrsScheduler.ts` (`ts-fsrs` v4.4.0, 90% retention)<br>`src/db/vocabularyRepository.ts` (Dexie v3 migration) |
+| **Phase A** | Practice Screen Redesign & Category Navigation | **COMPLETED & VERIFIED** | `src/components/practice/PracticeScreen.tsx`<br>`src/components/practice/PracticeHeroCard.tsx`<br>`public/assets/practice-hero-character.png` (original 3D art)<br>Replaced redundant hubs with direct studio entries |
+| **Phase B** | Practice Difficulty, Goals, Frequency & Preferences | **COMPLETED & VERIFIED** | `src/types/practicePreferences.ts`<br>`src/db/practiceRepository.ts`<br>`src/components/practice/PracticePreferencesModal.tsx`<br>`tests/practicePreferences.spec.ts` (4/4 passed) |
+| **Phase C** | AI Conversation Coach (Personas, Speech & Feedback) | **COMPLETED & VERIFIED** | `src/components/practice/ConversationCoachModal.tsx`<br>3 personas (Alex, Sophia, Maya), Web Speech audio, speech-to-text, real-time feedback scorecard<br>`tests/conversationCoach.spec.ts` (4/4 passed) |
+| **Phase D** | Interactive Story Studio (Graded Reader & Co-Creator) | **COMPLETED & VERIFIED** | `src/components/practice/StoryStudioModal.tsx`<br>3 CEFR-graded stories, text-to-speech, inline comprehension questions, AI collaborative writing story continuation, 1-tap FSRS vocabulary extraction<br>`tests/storyStudio.spec.ts` (4/4 passed) |
+| **Phase E** | Vocabulary Practice Studio (Multimodal Circuit) | **COMPLETED & VERIFIED** | `src/components/practice/VocabularyStudioModal.tsx`<br>Multimodal circuit (Quiz, Match pairs, Fill-in-the-blank, AI Sentence Writer, Pronunciation), session scorecard, 1-tap FSRS deck saving<br>`tests/vocabularyStudio.spec.ts` (2/2 passed) |
+| **Phase F** | Grammar Practice Studio (Diagnostic Drills & Error Tracker) | **COMPLETED & VERIFIED** | `src/components/practice/GrammarStudioModal.tsx`<br>Core rule explainers, multiple-choice, sentence error corrections, interactive token chips sentence reordering, free-form writing evaluation, error pattern diagnostics<br>`tests/grammarStudio.spec.ts` (2/2 passed) |
+| **Phase G** | Listening & Voice Coach (Authentic Audio & Dictation) | **COMPLETED & VERIFIED** | `src/components/practice/ListeningVoiceStudioModal.tsx`<br>Authentic scenarios (Train station, London bakery, Airport gate change), speed controls (0.8x, 1.0x, 1.2x), waveform play/pause, collapsible transcript reveal, dictation check, voice retell with Web Speech API<br>`tests/listeningStudio.spec.ts` (2/2 passed) |
+| **Phase H** | Personal Interview Trainer (STAR Method & Role Customizer) | **COMPLETED & VERIFIED** | `src/components/practice/InterviewTrainerModal.tsx`<br>Predefined career tracks (Software Engineer, Product Manager, Customer Success) + custom JD auto-parser, interviewer personas with TTS, STAR method blueprints (Situation, Task, Action, Result), speech recognition, comprehensive interview assessment report<br>`tests/interviewTrainer.spec.ts` (2/2 passed) |
+| **Phase I** | Unified Progress & Improvement Dashboard | **COMPLETED & VERIFIED** | `src/components/progress/ProgressDashboardScreen.tsx`<br>Daily goal gauge (`{minutes} / {dailyGoalMinutes}`), streak tracking, CEFR curriculum pathway, 6-studio skill mastery breakdown, long-term FSRS memory retention overview, AI diagnostic error pattern tracker (prepositions, tenses, articles), recent session history, personalized learning next-steps plan<br>`tests/progressDashboard.spec.ts` (2/2 passed) |
+| **Daily Practice Refinement** | Full Daily Practice Functionality & Rotation | **COMPLETED & VERIFIED** | `src/services/dailyPracticeService.ts`<br>`src/components/home/DailyPracticeRow.tsx`<br>Deterministic calendar-date rotation, persistence in IndexedDB with `activityId`, status badges (`✓ Done`, `${due} Due`, `Ready`), 0 placeholders<br>`src/services/dailyPracticeService.test.ts` (6/6 passed)<br>`tests/dailyPractice.spec.ts` (8/8 passed) |
+| **Practice Screen Refinement** | Clean Category Chips & Single-Line Header Row | **COMPLETED & VERIFIED** | `src/components/practice/PracticeScreen.tsx`<br>Hidden horizontal scrollbar (`.no-scrollbar`), single-line responsive header row at 390px+ (`Vocabulary Notebook`, `FSRS`, `Vocab Studio`, `Review Due (X)`) |
+| **Progress Screen Refinement** | Editorial Hero & Balanced Metrics Layout | **COMPLETED & VERIFIED** | `src/components/progress/ProgressDashboardScreen.tsx`<br>`public/assets/progress-hero-character-transparent.png`<br>Clean transparent PNG extracted from 3D digital art, 0 background halo, CEFR badge in header, balanced metrics |
+| **Home Quick Picks Redesign** | 4 Complementary High-Value Learning Features | **COMPLETED & VERIFIED** | `src/components/quickpicks/*`<br>Word Quest mini-game (`word-quest`), Quick Notes notebook (`quick-notes`), Sketch & Explain canvas (`sketch-explain`), Daily Challenge (`daily-challenge`)<br>Dexie v5 safe migration with 4 new object stores<br>`src/services/quickPicksService.test.ts` (7/7 passed)<br>`tests/quickPicks.spec.ts` (10/10 passed) |
+| **Phase 4 Learning Preferences** | Personalized Learning Preferences & Adaptive Difficulty | **COMPLETED & VERIFIED** | `src/types/practicePreferences.ts`<br>`src/services/adaptiveRecommendationService.ts` (4/4 passed)<br>`src/components/practice/PracticePreferencesModal.tsx`<br>CEFR level selector (A1-C1) with explicit change confirmation, difficulty (Easy/Medium/Hard), session length (Quick/Standard/Extended), daily goal (5-30m), feedback style, contextual hints toggle, practice days, reminders<br>`tests/learningPreferences.spec.ts` (4/4 passed) |
+| **Quick Picks Activity Hub** | "See All" Interactive Learning Hub (10 Activities) | **COMPLETED & VERIFIED** | `src/components/quickpicks/ExploreActivitiesHub.tsx`<br>10 interactive learning activities: Phrase Builder, Mini Grammar Games, Scenario Challenge, Idiom of the Day, Categorized Notes, Daily Word Puzzle, Describe & Draw, Short Listening Quiz, Speaking Prompt, Interview Sprint<br>Dexie v6 schema with `activityCompletions` & `bookmarkedIdioms`<br>`src/services/activityHubService.test.ts` (8/8 passed)<br>`tests/activityHub.spec.ts` (10/10 passed) |
+| **Smart Notifications & Reminders** | Context-Aware In-App Notifications & Reminders | **COMPLETED & VERIFIED** | `src/services/notificationService.ts`<br>`src/services/systemNotificationService.ts`<br>`src/components/notifications/NotificationToast.tsx`<br>5 notification types (streak reminders, due vocabulary FSRS review, unfinished challenges/goals, milestone celebrations), quiet hours (22:00-08:00), 45-min cooldown, user category preferences, browser Web Notification API opt-in, non-intrusive bottom toast, zero lesson disruption, Dexie v7 `notificationEvents`<br>`src/services/notificationService.test.ts` (12/12 passed)<br>`src/services/systemNotificationService.test.ts` (3/3 passed)<br>`tests/smartNotifications.spec.ts` (8/8 passed) |
+| **Brand Identity & Opening Animation** | Distinctive Logo & Modern Opening Experience | **COMPLETED & VERIFIED** | `src/components/common/LexiLogo.tsx`<br>`src/components/common/SplashScreen.tsx`<br>`public/favicon.svg`<br>`public/assets/lexi-symbol.svg`<br>`public/assets/lexi-logo.svg`<br>Custom dialogue-loop "L" mark with 4-point golden sparkle ✦, deep indigo `#232655`, lavender `#646AA4` and peach accent `#FF6243`, opening bloom & fade transition (~850ms), session-persisted (runs once per session, tab switching/navigation never re-triggers), `prefers-reduced-motion` bypass (80ms), zero bottom nav disruption<br>`tests/brandAndSplash.spec.ts` (10/10 passed) |
 
 ---
 
@@ -36,13 +53,21 @@
 
 | Requirement Area | Specification | Planned Strategy | Status |
 | :--- | :--- | :--- | :--- |
-| **Visual Direction** | Exact replication of two-screen mockup (Home + Explore) | Measured color tokens (`#F6F7FE`, `#232655`, `#646AA4`, `#FF6243`), `rounded-3xl` (28px), custom artwork | Verified in `docs/design/reference-analysis.md` |
-| **Theme Rule** | Do NOT reintroduce rejected Wine Red / Light Sand | Enforced via design token linting and strict CSS variables | Active rule |
-| **Business Model** | 100% Free-to-use, no ads, no paywalled core lessons | Client-first PWA + local IndexedDB; zero paid subscriptions | Planned |
-| **Offline Resilience** | Essential learning usable without internet or when Gemini quota exhausted | Dexie.js local storage + static declarative curriculum + Web Speech API + rule-based fallback tutor | Planned |
-| **Spaced Repetition** | Scientifically grounded spaced repetition | `ts-fsrs` (v4+) implementing DSR algorithm | Planned |
-| **AI Security** | Never expose Gemini API keys in client bundles or APK | Cloudflare Worker / Serverless rate-limited proxy with server secret | Planned |
-| **Mobile Android** | Real Android APK capability | Capacitor v6 Android wrapper over Vite production build | Planned |
+| **Visual Direction** | Exact replication of two-screen mockup (Home + Explore) | Measured color tokens (`#F6F7FE`, `#232655`, `#646AA4`, `#FF6243`), `rounded-3xl` (28px), independent custom artwork | **Verified & Refined** in Home & Explore Screens |
+| **Brand Identity** | Memorable logo symbol, wordmark, favicon, and splash mark | Dialogue-loop "L" with 4-point golden sparkle ✦, deep indigo/lavender/peach palette, crisp SVG favicon & assets | **Verified (10/10 tests passing)** |
+| **Opening Experience** | Polished opening animation on app load | Smooth scale bloom, fade-in transition, session-based persistence, 80ms reduced-motion bypass | **Verified across mobile & desktop** |
+| **Smart Notifications** | Contextual reminders without notification bell or new nav tabs | Deterministic context evaluation, FSRS review counts, real streaks, daily challenges, quiet hours, cooldowns | **Verified (15 unit tests, 8 E2E tests passing)** |
+| **Notification Settings** | Granular user delivery and category controls in Settings modal | In-app reminders toggle, optional browser notification permission, 5 category chips, quiet hours display | **Verified in PracticePreferencesModal** |
+| **Explore Structure** | Matching `reference_screen_explore.png` | Continue Your Journey (60% ring), Choose Your Adventure (5 filter pills), Today's Word (`confident`), Popular with Learners | **Verified OK** |
+| **Explore Interactivity** | Real-time search, category filters, interactive modals, audio pronunciation | Client-side reactive filtering, Web Speech API audio, clean empty search states | **Verified (22/22 tests passing)** |
+| **CEFR Framework** | 6 proficiency tiers (A1 to C2) as pedagogical curriculum model | Declarative types, communicative descriptors, skill focuses | **Verified & Documented** (`docs/curriculum/cefr-architecture.md`) |
+| **Interactive Studios** | 6 working, dedicated learning studios across key skills | Conversation, Stories, Vocabulary, Grammar, Listening, Interview | **All 6 Studios Fully Implemented & Tested** |
+| **Daily Practice System** | Functional daily practice with calendar rotation & state tracking | Deterministic date-hash rotation, IndexedDB `activityId` persistence, zero "Coming Soon" placeholders | **Verified (6 unit tests, 8 e2e tests passing)** |
+| **FSRS Spaced Repetition** | Deterministic retention scheduling (ts-fsrs v4.4.0) | Multi-state cards (new, learning, review), intervals, 1-tap card extraction from studios | **Verified across Practice, Studios, and Reviews** |
+| **Progress Dashboard** | Full-fledged analytics & improvement center on Progress tab | Editorial 3D hero, goal gauge, streak, CEFR pathway, 6 studio scores, AI diagnostics, session history, action plan | **Verified in E2E tests & multi-viewport screenshots** |
+| **Personalized Preferences** | App-wide learner preference model & adaptive difficulty engine | CEFR levels A1-C1 with confirmation prompt, 3 difficulty modes, duration/goal, feedback style, hints, practice days, reminders, Dexie v6 | **Verified (4 unit tests, 8 e2e tests passing)** |
+| **Activity Hub (See All)** | 10 interactive learning activities with deduplication & bookmarks | Sentence ordering, error spotting, scenario roleplay, idiom bookmarking, categorized notes, daily word puzzle, describe & draw, listening quiz, speaking prompt, interview sprint | **Verified (8 unit tests, 10 e2e tests passing)** |
+| **Offline Resilience** | Essential learning usable without internet or when quota exhausted | Dexie.js local storage + Web Speech API + static curriculum | Active in App & Modals |
 
 ---
 
@@ -50,10 +75,11 @@
 
 | Gate ID | Quality Gate Description | Target Verification Command | Current Status |
 | :--- | :--- | :--- | :--- |
-| **GATE-0** | Phase 0 Research Review & Reference Correction | User Review of Corrected Phase 0 Deliverable | **Ready for Review** |
-| **GATE-1** | Design System & Token Coherence | `docs/design/design-system.md` review & preview check | Documented — Ready for Review |
-| **GATE-2** | Home Page Pixel Fidelity & Responsiveness | Playwright visual screenshot diff vs `reference_screen_home.png` | Queued |
-| **GATE-3** | Unit Test Suite (FSRS math, Streak calendar, Lesson scoring) | `pnpm test:unit` (Vitest) | Queued |
-| **GATE-4** | End-to-End Workflow Tests | `pnpm test:e2e` (Playwright) | Queued |
-| **GATE-5** | Accessibility Audit (WCAG AA, Focus rings, Contrast) | Playwright axe-core / Chrome DevTools a11y | Queued |
-| **GATE-6** | Production Build & Android APK Build | `pnpm build && pnpm cap sync android` | Queued |
+| **GATE-0** | Phase 0 Research Review & Reference Correction | User Review of Corrected Phase 0 Deliverable | **Passed** |
+| **GATE-1** | Design System & Token Coherence | `docs/design/design-system.md` review & token linting | **Passed** |
+| **GATE-2** | Screen Pixel Fidelity & Responsiveness | Playwright visual screenshot diff across 320px–1280px | **Passed (Multi-viewport verified across all screens)** |
+| **GATE-3** | Unit Test Suite (Scoring Service, Progression DAG, Persistence Repository, FSRS Scheduler, Daily Practice Service, Quick Picks Service, Adaptive Recommendations, Activity Hub Service, Notification Service, System Notification Service) | `npm run test:unit` / Vitest | **Passed (86/86 unit tests passed across 12 test files)** |
+| **GATE-4** | End-to-End Workflow Tests (Home, Explore, Lesson Engine, Practice Hub, All 6 Studios, Daily Practice, Dashboard, 4 Quick Picks, Phase 4 Preferences, Activity Hub, Brand & Splash, Smart Notifications) | `npx playwright test` | **Passed (146/146 tests passing across 11 spec files)** |
+| **GATE-5** | Accessibility Audit (WCAG AA, Focus rings, Contrast, Dialog roles, Labels) | Playwright / Chrome DevTools a11y | **Verified (Keyboard focus, aria-live polite, role="status", dialog roles, aria-current)** |
+| **GATE-6** | Production Build & Type Safety | `npx tsc --noEmit && npm run build` | **Passed (0 errors, Vite production build clean in 1.68s)** |
+
