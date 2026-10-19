@@ -1,3 +1,10 @@
+import type { CEFRLevel } from './curriculum';
+
+export * from './curriculum';
+export * from './vocabulary';
+export * from './practicePreferences';
+export * from './dailyPractice';
+
 export interface UserProfile {
   id: string;
   name: string;
@@ -5,7 +12,7 @@ export interface UserProfile {
   currentStreak: number;
   longestStreak: number;
   lastActiveDate: string;
-  cefrLevel: 'A1' | 'A2' | 'B1' | 'B2' | 'C1';
+  cefrLevel: CEFRLevel;
   dailyGoalMinutes: number;
   avatarUrl: string;
 }
@@ -38,3 +45,41 @@ export interface FeaturedActivity {
 }
 
 export type NavigationTab = 'Home' | 'Explore' | 'Practice' | 'Progress';
+
+export type AdventureCategory = 'All' | 'Daily Life' | 'Travel' | 'Career' | 'Fun';
+
+export interface AdventureScenario {
+  id: string;
+  title: string;
+  subtitle: string;
+  category: Exclude<AdventureCategory, 'All'>;
+  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+  duration: string;
+  badgeLabel: string;
+  description: string;
+  iconType: 'plane' | 'shopping' | 'briefcase' | 'coffee' | 'compass' | 'utensils';
+  samplePrompt?: string;
+}
+
+export interface JourneyCurriculumUnit {
+  unitNumber: number;
+  unitLabel: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  progressPercent: number;
+  totalLessons: number;
+  completedLessons: number;
+  nextLessonTitle: string;
+}
+
+export interface PopularModule {
+  id: string;
+  title: string;
+  subtitle: string;
+  category: 'Stories' | 'Speaking' | 'Conversation' | 'Grammar' | 'Vocabulary';
+  duration: string;
+  difficulty: 'Beginner' | 'Intermediate' | 'Advanced' | 'All Levels';
+  description: string;
+  iconName: 'book-open' | 'mic' | 'message-circle' | 'sparkles' | 'compass';
+}

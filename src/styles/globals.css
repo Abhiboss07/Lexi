@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+@theme {
+  --breakpoint-xs: 360px;
+}
+
 @layer base {
   :root {
     --color-canvas-staging: #E7EAFD;
@@ -60,4 +64,15 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #A9AED6;
+}
+
+/* Utilities to cleanly hide horizontal scrollbars while preserving scrolling */
+.no-scrollbar,
+.scrollbar-none {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.no-scrollbar::-webkit-scrollbar,
+.scrollbar-none::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
 }
