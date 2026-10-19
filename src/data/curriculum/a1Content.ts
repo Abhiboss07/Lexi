@@ -483,7 +483,7 @@ export const A1_LESSONS: Record<string, CurriculumLesson> = {
     unitId: 'a1-unit-3',
     level: 'A1',
     order: 1,
-    title: 'Ordering at a Café',
+    title: 'Ordering food at a café',
     subtitle: 'Order coffee, tea, pastries, and specify milk and takeaway preferences',
     description: 'Master the classic café order: "Can I have an oat milk latte, please?", "For here or to go?", and adding snacks.',
     estimatedMinutes: 6,

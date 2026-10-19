@@ -24,9 +24,13 @@ interface ExploreScreenProps {
     description: string;
     prompt?: string;
   }) => void;
+  onOpenCurriculumBrowser?: () => void;
 }
 
-export const ExploreScreen: React.FC<ExploreScreenProps> = ({ onOpenActivity }) => {
+export const ExploreScreen: React.FC<ExploreScreenProps> = ({ 
+  onOpenActivity,
+  onOpenCurriculumBrowser,
+}) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<AdventureCategory>('All');
 
@@ -221,7 +225,7 @@ export const ExploreScreen: React.FC<ExploreScreenProps> = ({ onOpenActivity }) 
           <ContinueJourneyCard
             unit={CURRENT_JOURNEY_UNIT}
             onContinue={handleContinueJourney}
-            onSeeAll={() => {
+            onSeeAll={onOpenCurriculumBrowser ? onOpenCurriculumBrowser : () => {
               onOpenActivity({
                 title: 'Grammar Journey Curriculum',
                 subtitle: 'All 10 Units • A1 to B2 Roadmap',

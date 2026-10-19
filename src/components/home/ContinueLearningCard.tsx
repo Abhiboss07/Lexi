@@ -3,20 +3,24 @@ import { ArrowRight, BookOpen } from 'lucide-react';
 
 interface ContinueLearningCardProps {
   onContinue: () => void;
+  onSeeAll?: () => void;
   unitLabel?: string;
   lessonTitle?: string;
   description?: string;
   progressPercent?: number;
   nextLessonTitle?: string;
+  badgeLabel?: string;
 }
 
 export const ContinueLearningCard: React.FC<ContinueLearningCardProps> = ({ 
   onContinue,
-  unitLabel = 'Unit 2 • Practical Speaking',
-  lessonTitle = 'Everyday Conversations',
-  description = 'Practice greetings, polite requests, and casual dialogue in natural settings.',
-  progressPercent = 65,
+  onSeeAll,
+  unitLabel = 'Unit 2 • Daily Life & Routines',
+  lessonTitle = 'At the Bus Stop',
+  description = 'Practice asking about bus routes, waiting times, and local public transit.',
+  progressPercent = 50,
   nextLessonTitle = 'Next: Lesson 3 • At the Bus Stop',
+  badgeLabel = 'In Progress',
 }) => {
   return (
     <section aria-labelledby="continue-learning-heading" className="pt-3 pb-2">
@@ -24,9 +28,19 @@ export const ContinueLearningCard: React.FC<ContinueLearningCardProps> = ({
         <h2 id="continue-learning-heading" className="text-[19px] sm:text-[20px] font-extrabold tracking-tight text-[#1E224D]">
           Continue Learning
         </h2>
-        <span className="text-[11px] sm:text-[11.5px] font-semibold text-[#545CA6] bg-[#ECEFFD] px-2.5 py-1 rounded-full">
-          Sample Preview
-        </span>
+        <div className="flex items-center gap-2">
+          {onSeeAll && (
+            <button
+              onClick={onSeeAll}
+              className="text-[11.5px] font-bold text-[#545CA6] hover:text-[#1E224D] transition-colors cursor-pointer"
+            >
+              Syllabus →
+            </button>
+          )}
+          <span className="text-[11px] sm:text-[11.5px] font-semibold text-[#545CA6] bg-[#ECEFFD] px-2.5 py-1 rounded-full">
+            {badgeLabel}
+          </span>
+        </div>
       </div>
 
       <div className="p-4.5 xs:p-5 sm:p-6 rounded-[22px] bg-white border border-[#ECEEFE] shadow-[0_4px_20px_rgba(35,38,85,0.05)] hover:border-[#C5C9EB] transition-all">

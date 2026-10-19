@@ -43,7 +43,6 @@ export class DexieCurriculumRepository implements ICurriculumRepository {
     seededState = completeLessonProgress('a1-u1-l3-courtesies', 100, seededState, LEXI_CURRICULUM);
     seededState = completeLessonProgress('a1-u1-l4-checkins', 90, seededState, LEXI_CURRICULUM);
     seededState = completeLessonProgress('a1-u2-l1-time', 85, seededState, LEXI_CURRICULUM);
-    seededState = completeLessonProgress('a1-u2-l2-everyday-conversations', 90, seededState, LEXI_CURRICULUM);
 
     await this.table.put(seededState);
     return seededState;
