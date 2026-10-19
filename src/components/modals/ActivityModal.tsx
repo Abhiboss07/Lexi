@@ -8,8 +8,10 @@ interface ActivityModalProps {
   subtitle?: string;
   description: string;
   category?: string;
+  mappedLessonId?: string;
   onClose: () => void;
   onCompleteExercise?: () => void;
+  onStartLesson?: (lessonId: string) => void;
 }
 
 export const ActivityModal: React.FC<ActivityModalProps> = ({
@@ -18,8 +20,10 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
   subtitle,
   description,
   category,
+  mappedLessonId,
   onClose,
   onCompleteExercise,
+  onStartLesson,
 }) => {
   const [selectedOption, setSelectedOption] = React.useState<number | null>(null);
   const [isCompleted, setIsCompleted] = React.useState(false);
@@ -146,12 +150,25 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="pt-2">
+        <div className="pt-2 space-y-2">
+          {mappedLessonId && onStartLesson && (
+            <button
+              type="button"
+              onClick={() => onStartLesson(mappedLessonId)}
+              className="w-full py-3.5 rounded-full bg-[#1E224E] hover:bg-[#141738] text-white text-[14px] font-bold transition-all shadow-[0_4px_16px_rgba(30,34,78,0.22)] flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <span>Start Interactive Lesson</span>
+              <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+            </button>
+          )}
+
           {!isCompleted ? (
             <button
               onClick={handleCheck}
               disabled={selectedOption === null}
-              className="w-full py-3.5 rounded-full bg-[#232655] hover:bg-[#181A3C] disabled:bg-[#D5D8EE] disabled:cursor-not-allowed text-white text-[14px] font-semibold transition-all shadow-lexi-btn flex items-center justify-center gap-2"
+              className={`w-full ${
+                mappedLessonId ? 'py-2.5 text-[13px] bg-white text-[#222149] border border-[#D5D8EE] hover:bg-[#F9F9FE]' : 'py-3.5 text-[14px] bg-[#232655] hover:bg-[#181A3C] text-white shadow-lexi-btn'
+              } rounded-full disabled:bg-[#D5D8EE] disabled:cursor-not-allowed font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer`}
             >
               <span>Check Answer</span>
               <ArrowRight className="w-4 h-4 stroke-[2.5]" />
@@ -159,7 +176,7 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
           ) : (
             <button
               onClick={onClose}
-              className="w-full py-3.5 rounded-full bg-[#232655] hover:bg-[#181A3C] text-white text-[14px] font-semibold transition-all shadow-lexi-btn flex items-center justify-center gap-2"
+              className="w-full py-3.5 rounded-full bg-[#232655] hover:bg-[#181A3C] text-white text-[14px] font-semibold transition-all shadow-lexi-btn flex items-center justify-center gap-2 cursor-pointer"
             >
               <span>Continue Learning</span>
             </button>

@@ -12,26 +12,26 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onSelectTab }) 
     {
       id: 'Home',
       label: 'Home',
-      icon: <Home className="w-[22px] h-[22px] stroke-[2]" />,
-      activeIcon: <Home className="w-[22px] h-[22px] fill-[#232655] stroke-[#232655]" />,
+      icon: <Home className="w-[22px] h-[22px] stroke-[1.8] text-[#8E93B8]" />,
+      activeIcon: <Home className="w-[22px] h-[22px] stroke-[2.2] text-[#232655] fill-[#232655]/10" />,
     },
     {
       id: 'Explore',
       label: 'Explore',
-      icon: <Compass className="w-[22px] h-[22px] stroke-[2]" />,
-      activeIcon: <Compass className="w-[22px] h-[22px] fill-[#232655] stroke-[#232655]" />,
+      icon: <Compass className="w-[22px] h-[22px] stroke-[1.8] text-[#8E93B8]" />,
+      activeIcon: <Compass className="w-[22px] h-[22px] stroke-[2.2] text-[#232655] fill-[#232655]/10" />,
     },
     {
       id: 'Practice',
       label: 'Practice',
-      icon: <Mic className="w-[22px] h-[22px] stroke-[2]" />,
-      activeIcon: <Mic className="w-[22px] h-[22px] fill-[#232655] stroke-[#232655]" />,
+      icon: <Mic className="w-[22px] h-[22px] stroke-[1.8] text-[#8E93B8]" />,
+      activeIcon: <Mic className="w-[22px] h-[22px] stroke-[2.2] text-[#232655] fill-[#232655]/10" />,
     },
     {
       id: 'Progress',
       label: 'Progress',
-      icon: <BarChart3 className="w-[22px] h-[22px] stroke-[2]" />,
-      activeIcon: <BarChart3 className="w-[22px] h-[22px] stroke-[#232655] stroke-[2.5]" />,
+      icon: <BarChart3 className="w-[22px] h-[22px] stroke-[1.8] text-[#8E93B8]" />,
+      activeIcon: <BarChart3 className="w-[22px] h-[22px] stroke-[2.2] text-[#232655] fill-[#232655]/10" />,
     },
   ];
 
