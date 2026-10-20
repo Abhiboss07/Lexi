@@ -22,10 +22,18 @@ import type { PracticeCategoryKey } from '../practice/PracticeCategoryNav';
 import type { PracticePreferences, PracticeSessionRecord } from '../../types/practicePreferences';
 import type { CurriculumProgressionState } from '../../types/curriculum';
 import type { VocabularyStats } from '../../types/vocabulary';
+import type { UserProfile } from '../../types';
+import type { ActivityCompletionRecord, QuickNote } from '../../types/quickPicks';
 import { practiceRepository } from '../../db/practiceRepository';
 import { curriculumRepository } from '../../db/curriculumRepository';
 import { vocabularyRepository } from '../../db/vocabularyRepository';
+import { quickPicksRepository } from '../../db/quickPicksRepository';
+import { db } from '../../db';
 import { LEXI_CURRICULUM } from '../../data/curriculum';
+import { calculateAchievements } from '../../services/achievementService';
+import { adaptiveLearningService } from '../../services/adaptiveLearningService';
+import type { AdaptiveLearnerProfile, DailyStudyPlanRecord } from '../../types/adaptivePlan';
+import { AchievementsModal } from '../modals/AchievementsModal';
 
 export interface ProgressDashboardScreenProps {
   userId?: string;
@@ -51,17 +59,39 @@ export const ProgressDashboardScreen: React.FC<ProgressDashboardScreenProps> = (
   const [vocabStats, setVocabStats] = useState<VocabularyStats | null>(null);
   const [sessions, setSessions] = useState<PracticeSessionRecord[]>([]);
   const [todayMinutes, setTodayMinutes] = useState<number>(0);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [activityCompletions, setActivityCompletions] = useState<ActivityCompletionRecord[]>([]);
+  const [quickNotes, setQuickNotes] = useState<QuickNote[]>([]);
+  const [adaptiveProfile, setAdaptiveProfile] = useState<AdaptiveLearnerProfile | null>(null);
+  const [dailyPlan, setDailyPlan] = useState<DailyStudyPlanRecord | null>(null);
+  const [isAchievementsModalOpen, setIsAchievementsModalOpen] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const loadProgressData = useCallback(async () => {
     try {
       setIsLoading(true);
-      const [userPrefs, currState, vStats, recentSessions, minutesToday] = await Promise.all([
+      const [
+        userPrefs, 
+        currState, 
+        vStats, 
+        recentSessions, 
+        minutesToday, 
+        profile, 
+        completions, 
+        notes,
+        adProfile,
+        dPlan,
+      ] = await Promise.all([
         practiceRepository.getPreferences(userId),
         curriculumRepository.getLearnerProgress(userId),
         vocabularyRepository.getStats(userId),
         practiceRepository.getSessions(userId, 30),
         practiceRepository.getTodayPracticeMinutes(userId),
+        db.users.get(userId),
+        quickPicksRepository.getAllActivityCompletions(userId),
+        quickPicksRepository.getNotes(userId),
+        adaptiveLearningService.buildAdaptiveProfile(userId),
+        adaptiveLearningService.getDailyStudyPlan(userId),
       ]);
 
       setPreferences(userPrefs);
@@ -69,6 +99,11 @@ export const ProgressDashboardScreen: React.FC<ProgressDashboardScreenProps> = (
       setVocabStats(vStats);
       setSessions(recentSessions);
       setTodayMinutes(minutesToday);
+      setUserProfile(profile || null);
+      setActivityCompletions(completions || []);
+      setQuickNotes(notes || []);
+      setAdaptiveProfile(adProfile);
+      setDailyPlan(dPlan);
     } catch (err) {
       console.error('Failed to load progress dashboard data:', err);
     } finally {
@@ -83,6 +118,27 @@ export const ProgressDashboardScreen: React.FC<ProgressDashboardScreenProps> = (
   const dailyGoalMinutes = preferences?.dailyGoalMinutes || 15;
   const goalPercent = Math.min(100, Math.round((todayMinutes / dailyGoalMinutes) * 100));
 
+  const achievementsSummary = useMemo(() => {
+    return calculateAchievements({
+      user: userProfile || {
+        id: userId,
+        name: 'Learner',
+        email: 'learner@lexi.local',
+        currentStreak: userStreak,
+        longestStreak: userLongestStreak,
+        lastActiveDate: new Date().toISOString().split('T')[0],
+        cefrLevel: curriculumProgress?.currentLevel || 'A2',
+        dailyGoalMinutes,
+        avatarUrl: '/assets/default-avatar.svg',
+      },
+      curriculum: curriculumProgress,
+      vocabStats,
+      sessions,
+      activityCompletions,
+      quickNotesCount: quickNotes.length,
+    });
+  }, [userProfile, userId, userStreak, userLongestStreak, curriculumProgress, dailyGoalMinutes, vocabStats, sessions, activityCompletions, quickNotes]);
+
   // CEFR Lessons Calculation
   const totalLessonsInCurriculum = useMemo(() => {
     return Object.keys(LEXI_CURRICULUM.lessons).length;
@@ -94,33 +150,55 @@ export const ProgressDashboardScreen: React.FC<ProgressDashboardScreenProps> = (
   // Next lesson calculation
   const nextLessonId = curriculumProgress?.lastStudiedLessonId || 'a1-u2-l3-daily-routines';
 
-  // Average session scores by category
+  // Average session scores by category from real adaptive profile
   const studioAverages = useMemo(() => {
-    const defaultStats = {
-      conversation: { score: 88, count: 0, label: 'Conversation', icon: MessageCircle, color: 'text-[#2563EB]', bg: 'bg-[#EFF6FF]' },
-      stories: { score: 92, count: 0, label: 'Stories', icon: BookOpen, color: 'text-[#C026D3]', bg: 'bg-[#FDF4FF]' },
-      vocabulary: { score: 94, count: 0, label: 'Vocabulary', icon: Sparkles, color: 'text-[#059669]', bg: 'bg-[#ECFDF5]' },
-      grammar: { score: 85, count: 0, label: 'Grammar', icon: FileText, color: 'text-[#D97706]', bg: 'bg-[#FFFBEB]' },
-      listening: { score: 90, count: 0, label: 'Listening', icon: Headphones, color: 'text-[#7C3AED]', bg: 'bg-[#F5F3FF]' },
-      interview: { score: 89, count: 0, label: 'Interview', icon: Briefcase, color: 'text-[#2563EB]', bg: 'bg-[#EFF6FF]' },
+    const config = {
+      conversation: { label: 'Conversation', icon: MessageCircle, color: 'text-[#2563EB]', bg: 'bg-[#EFF6FF]' },
+      stories: { label: 'Stories', icon: BookOpen, color: 'text-[#C026D3]', bg: 'bg-[#FDF4FF]' },
+      vocabulary: { label: 'Vocabulary', icon: Sparkles, color: 'text-[#059669]', bg: 'bg-[#ECFDF5]' },
+      grammar: { label: 'Grammar', icon: FileText, color: 'text-[#D97706]', bg: 'bg-[#FFFBEB]' },
+      listening: { label: 'Listening', icon: Headphones, color: 'text-[#7C3AED]', bg: 'bg-[#F5F3FF]' },
+      interview: { label: 'Interview', icon: Briefcase, color: 'text-[#2563EB]', bg: 'bg-[#EFF6FF]' },
     };
 
-    sessions.forEach((s) => {
-      const cat = s.category as keyof typeof defaultStats;
-      if (defaultStats[cat] && s.score) {
-        defaultStats[cat].score = Math.round((defaultStats[cat].score + s.score) / 2);
-        defaultStats[cat].count += 1;
-      }
-    });
+    const result = {} as Record<string, {
+      score: number | null;
+      count: number;
+      label: string;
+      status: string;
+      icon: any;
+      color: string;
+      bg: string;
+    }>;
 
-    return defaultStats;
-  }, [sessions]);
+    for (const [key, meta] of Object.entries(config)) {
+      const diag = adaptiveProfile?.skills[key as PracticeCategoryKey];
+      result[key] = {
+        score: diag ? diag.score : null,
+        count: diag ? diag.sessionCount : 0,
+        status: diag ? diag.status : 'insufficient_evidence',
+        label: meta.label,
+        icon: meta.icon,
+        color: meta.color,
+        bg: meta.bg,
+      };
+    }
 
-  // Overall Fluency Index
+    return result;
+  }, [adaptiveProfile]);
+
+  // Overall Fluency Index (real measured score or fallback baseline)
   const fluencyIndex = useMemo(() => {
-    const scores = Object.values(studioAverages).map((s) => s.score);
-    return Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
-  }, [studioAverages]);
+    if (adaptiveProfile?.recentAverageScore !== null && adaptiveProfile?.recentAverageScore !== undefined) {
+      return adaptiveProfile.recentAverageScore;
+    }
+    const scoredSessions = sessions.filter((s) => typeof s.score === 'number' && !isNaN(s.score));
+    if (scoredSessions.length > 0) {
+      const total = scoredSessions.reduce((acc, s) => acc + (s.score || 0), 0);
+      return Math.round(total / scoredSessions.length);
+    }
+    return 85; // Baseline index for new learners
+  }, [adaptiveProfile, sessions]);
 
   if (isLoading) {
     return (
@@ -135,8 +213,8 @@ export const ProgressDashboardScreen: React.FC<ProgressDashboardScreenProps> = (
     <div className="space-y-5 pb-8" aria-label="Progress & Analytics Dashboard">
       
       {/* 1. Header */}
-      <header className="flex items-center justify-between pt-1">
-        <div className="space-y-1">
+      <header className="flex items-center justify-between pt-1 gap-2">
+        <div className="space-y-1 min-w-0">
           <div className="flex items-center gap-2">
             <h1 className="text-[22px] xs:text-[24px] font-black text-[#15164B] tracking-tight">
               Progress & Insights
@@ -150,6 +228,21 @@ export const ProgressDashboardScreen: React.FC<ProgressDashboardScreenProps> = (
             Personalized Fluency Analytics • Goal Tracking • AI Diagnostics
           </p>
         </div>
+
+        {/* Milestones & Badges Trigger */}
+        <button
+          type="button"
+          onClick={() => setIsAchievementsModalOpen(true)}
+          className="px-3 py-1.5 rounded-2xl bg-white border border-[#CCD1F0] hover:bg-[#EEF1FB] text-[#15164B] text-[11.5px] font-bold shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer shrink-0"
+          aria-label="Open milestones and badges modal"
+        >
+          <Award className="w-4 h-4 text-[#D97706]" />
+          <span className="hidden xs:inline">Milestones & Badges</span>
+          <span className="xs:hidden">Badges</span>
+          <span className="px-1.5 py-0.2 rounded-md bg-[#EEF2FF] text-[#4F46E5] text-[10.5px] font-extrabold">
+            {achievementsSummary.unlockedBadgesCount}
+          </span>
+        </button>
       </header>
 
       {/* 2. Premium Editorial Progress Hero Card */}
@@ -185,11 +278,16 @@ export const ProgressDashboardScreen: React.FC<ProgressDashboardScreenProps> = (
             </p>
 
             {/* Streak Pill */}
-            <div className="inline-flex items-center gap-1.5 bg-[#FFF7ED] border border-[#FED7AA] px-3 py-1 rounded-full mt-3 shadow-xs">
+            <button
+              type="button"
+              onClick={() => setIsAchievementsModalOpen(true)}
+              className="inline-flex items-center gap-1.5 bg-[#FFF7ED] hover:bg-[#FFEDD5] border border-[#FED7AA] px-3 py-1 rounded-full mt-3 shadow-xs cursor-pointer transition-colors text-left"
+              aria-label="View streak achievements"
+            >
               <Flame className="w-4 h-4 text-[#EA580C] fill-[#EA580C]" />
               <span className="text-[12px] font-black text-[#9A3412]">{userStreak} Day Streak</span>
               <span className="text-[10.5px] text-[#C2410C] font-semibold">(Best {userLongestStreak}d)</span>
-            </div>
+            </button>
           </div>
 
           {/* Right 3D Character Illustration */}
@@ -281,9 +379,20 @@ export const ProgressDashboardScreen: React.FC<ProgressDashboardScreenProps> = (
               </p>
             </div>
           </div>
-          <span className="text-[12px] font-black text-[#4F46E5]">
-            {curriculumPercent}%
-          </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsAchievementsModalOpen(true)}
+              className="text-[11.5px] font-bold text-[#4F46E5] hover:underline cursor-pointer flex items-center gap-0.5"
+              aria-label="View CEFR Certificates and Badges"
+            >
+              <span>Certificates</span>
+              <ChevronRight className="w-3.5 h-3.5 stroke-[2.5]" />
+            </button>
+            <span className="text-[12px] font-black text-[#4F46E5] bg-[#EEF2FF] px-2 py-0.5 rounded-lg">
+              {curriculumPercent}%
+            </span>
+          </div>
         </div>
 
         <div className="w-full h-2 bg-[#F0F2FD] rounded-full overflow-hidden">
@@ -340,7 +449,7 @@ export const ProgressDashboardScreen: React.FC<ProgressDashboardScreenProps> = (
                     <Icon className="w-4 h-4 stroke-[2.4]" />
                   </div>
                   <span className="text-[14px] font-black text-[#15164B]">
-                    {data.score}%
+                    {data.score !== null ? `${data.score}%` : '—'}
                   </span>
                 </div>
 
@@ -349,7 +458,11 @@ export const ProgressDashboardScreen: React.FC<ProgressDashboardScreenProps> = (
                     {data.label}
                   </h3>
                   <p className="text-[10.5px] text-[#8E93B8] font-medium mt-0.5">
-                    {data.count > 0 ? `${data.count} sessions completed` : 'Calibrated estimate'}
+                    {data.count >= 2
+                      ? `${data.count} sessions • ${data.status === 'strength' ? 'Strength' : data.status === 'proficient' ? 'Proficient' : 'Needs Focus'}`
+                      : data.count === 1
+                      ? '1 session (baseline in progress)'
+                      : 'No sessions yet'}
                   </p>
                 </div>
 
@@ -365,6 +478,120 @@ export const ProgressDashboardScreen: React.FC<ProgressDashboardScreenProps> = (
             );
           })}
         </div>
+      </section>
+
+      {/* 5. Adaptive Learning Intelligence & Personalized Plan Insights */}
+      <section 
+        aria-label="Adaptive Learning Intelligence" 
+        className="p-4 sm:p-5 rounded-3xl bg-white border border-[#ECEEFE] shadow-xs space-y-4"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-9 h-9 rounded-2xl bg-[#EEF2FF] text-[#4F46E5] flex items-center justify-center">
+              <Sparkles className="w-5 h-5 stroke-[2.4]" />
+            </div>
+            <div>
+              <h2 className="text-[15px] font-black text-[#15164B]">
+                Adaptive Learning Intelligence
+              </h2>
+              <p className="text-[11px] font-medium text-[#6B7094]">
+                Offline diagnostic feedback & personalized daily plan adaptation
+              </p>
+            </div>
+          </div>
+          {adaptiveProfile?.performanceTrend && (
+            <span className="px-2.5 py-1 rounded-full text-[10.5px] font-extrabold uppercase tracking-wider bg-indigo-50 border border-indigo-100 text-[#4F46E5]">
+              {adaptiveProfile.performanceTrend === 'improving' ? '📈 Improving' :
+               adaptiveProfile.performanceTrend === 'declining' ? '🔄 Needs Support' :
+               adaptiveProfile.performanceTrend === 'steady' ? '⚖️ Steady' : '🌱 Baseline'}
+            </span>
+          )}
+        </div>
+
+        {/* Strengths & Weaknesses Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Strongest Area */}
+          <div className="p-3.5 rounded-2xl bg-[#F0FDF4] border border-[#DCFCE7] space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-extrabold uppercase text-[#166534] tracking-wider">
+                Strongest Skill
+              </span>
+              {adaptiveProfile?.strongestArea && (
+                <span className="text-[12px] font-black text-[#166534]">
+                  {adaptiveProfile.strongestArea.score}% Accuracy
+                </span>
+              )}
+            </div>
+            <h3 className="text-[13.5px] font-bold text-[#14532D]">
+              {adaptiveProfile?.strongestArea ? adaptiveProfile.strongestArea.label : 'Establishing Diagnostic Baseline'}
+            </h3>
+            <p className="text-[11px] text-[#166534] leading-relaxed">
+              {adaptiveProfile?.strongestArea
+                ? `Consistently high accuracy. Demonstrating reliable mastery and fluid responses in ${adaptiveProfile.strongestArea.label}.`
+                : 'Complete at least 2 practice sessions across any category to identify your strongest skill.'}
+            </p>
+          </div>
+
+          {/* Improvement Focus */}
+          <div className="p-3.5 rounded-2xl bg-[#FFFBEB] border border-[#FEF3C7] space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-extrabold uppercase text-[#92400E] tracking-wider">
+                Improvement Opportunity
+              </span>
+              {adaptiveProfile?.weakestArea && (
+                <span className="text-[12px] font-black text-[#92400E]">
+                  {adaptiveProfile.weakestArea.score}% Accuracy
+                </span>
+              )}
+            </div>
+            <h3 className="text-[13.5px] font-bold text-[#78350F]">
+              {adaptiveProfile?.weakestArea ? adaptiveProfile.weakestArea.label : 'No Critical Weaknesses Detected'}
+            </h3>
+            <p className="text-[11px] text-[#92400E] leading-relaxed">
+              {adaptiveProfile?.weakestArea
+                ? `Targeted drills recommended to close accuracy gaps in ${adaptiveProfile.weakestArea.label}.`
+                : 'Balanced accuracy across evaluated skills. Keep practicing to maintain conversational rhythm.'}
+            </p>
+            {adaptiveProfile?.weakestArea && (
+              <button
+                type="button"
+                onClick={() => onOpenStudio(adaptiveProfile.weakestArea!.category)}
+                className="mt-1 text-[11px] font-bold text-[#B45309] hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                <span>Practice {adaptiveProfile.weakestArea.label}</span>
+                <ArrowRight className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* How Study Plan Responds */}
+        {dailyPlan && (
+          <div className="p-3.5 rounded-2xl bg-[#FAF9FE] border border-[#ECEEFE] space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold text-[#15164B]">
+                How Today's Study Plan Adapts to Your Progress
+              </span>
+              <span className="text-[10.5px] text-[#6B7094]">
+                ~{dailyPlan.estimatedTotalMinutes} min budget
+              </span>
+            </div>
+            <ul className="space-y-1 text-[11.5px] text-[#52577F]">
+              <li className="flex items-start gap-1.5">
+                <span className="text-[#4F46E5] font-bold">•</span>
+                <span><strong>FSRS Spaced Repetition:</strong> {adaptiveProfile?.dueVocabCards ? `${adaptiveProfile.dueVocabCards} flashcards prioritized for review today.` : 'All vocabulary caught up.'}</span>
+              </li>
+              <li className="flex items-start gap-1.5">
+                <span className="text-[#4F46E5] font-bold">•</span>
+                <span><strong>Curriculum Pathway:</strong> Linear advancement in CEFR {adaptiveProfile?.currentLevel || 'A1'}.</span>
+              </li>
+              <li className="flex items-start gap-1.5">
+                <span className="text-[#4F46E5] font-bold">•</span>
+                <span><strong>Adaptive Focus:</strong> {adaptiveProfile?.weakestArea ? `Prioritizing targeted drills in ${adaptiveProfile.weakestArea.label}.` : 'Balanced authentic scenario roleplay scheduled.'}</span>
+              </li>
+            </ul>
+          </div>
+        )}
       </section>
 
       {/* 5. Memory & FSRS Vocabulary Retention Overview */}
@@ -618,6 +845,15 @@ export const ProgressDashboardScreen: React.FC<ProgressDashboardScreenProps> = (
           </li>
         </ul>
       </section>
+
+      {/* 9. Interactive Achievements & Offline Backup Dialog */}
+      <AchievementsModal
+        isOpen={isAchievementsModalOpen}
+        onClose={() => setIsAchievementsModalOpen(false)}
+        userId={userId}
+        summary={achievementsSummary}
+        onRefresh={loadProgressData}
+      />
     </div>
   );
 };
