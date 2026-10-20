@@ -11,129 +11,40 @@ import {
   Award, 
   CheckCircle2, 
   BookPlus, 
-  User,
   Coffee,
   Briefcase,
   Compass,
   Building,
-  Plane
+  Plane,
+  ChevronDown,
+  ChevronUp,
+  Lightbulb,
+  RotateCw,
+  Sparkle
 } from 'lucide-react';
 import type { PracticeDifficulty, PracticeSessionLength } from '../../types/practicePreferences';
 import { DIFFICULTY_DESCRIPTIONS, SESSION_LENGTH_MINUTES } from '../../types/practicePreferences';
 import { practiceRepository } from '../../db/practiceRepository';
 import { vocabularyRepository } from '../../db/vocabularyRepository';
 import { dailyPracticeService, getLocalDateString } from '../../services/dailyPracticeService';
+import { CONVERSATION_SCENARIOS_DATA } from '../../data/conversationScenariosData';
+import type { 
+  ConversationScenarioDefinition, 
+  TurnFeedback 
+} from '../../types/conversationCoach';
+import { conversationCoachAIService } from '../../services/aiProviderService';
+import { mistakeTrackingService } from '../../services/mistakeTrackingService';
+import { useModalFocusTrap } from '../../hooks/useModalFocusTrap';
 
-export interface ConversationScenario {
-  id: string;
-  category: 'everyday' | 'workplace' | 'travel';
-  title: string;
-  level: string;
-  partner: string;
-  partnerRole: string;
-  icon: React.ElementType;
-  starter: string;
-  prompts: string[];
-  vocabularyToLearn: Array<{ word: string; pos: string; definition: string; example: string }>;
+export type ConversationScenario = ConversationScenarioDefinition;
+export const CONVERSATION_SCENARIOS = CONVERSATION_SCENARIOS_DATA;
+
+interface ChatMessage {
+  sender: 'ai' | 'user';
+  text: string;
+  feedback?: TurnFeedback;
+  timestamp: Date;
 }
-
-export const CONVERSATION_SCENARIOS: ConversationScenario[] = [
-  {
-    id: 'cafe',
-    category: 'everyday',
-    title: 'Ordering at a Cozy Café',
-    level: 'A1 • Beginner',
-    partner: 'Alex',
-    partnerRole: 'Barista',
-    icon: Coffee,
-    starter: "Hello! Welcome to Corner Café. What can I get started for you today?",
-    prompts: [
-      "I'd like an iced latte with oat milk, please.",
-      "Could I see what pastries you have fresh today?",
-      "Can I get a large cappuccino to go?",
-    ],
-    vocabularyToLearn: [
-      { word: 'cappuccino', pos: 'noun', definition: 'An Italian coffee drink prepared with espresso and steamed milk foam.', example: 'Can I get a large cappuccino to go?' },
-      { word: 'pastry', pos: 'noun', definition: 'A sweet baked food made with dough of flour, water and shortening.', example: 'The almond pastry was fresh and delicious.' },
-    ],
-  },
-  {
-    id: 'introductions',
-    category: 'workplace',
-    title: 'Meeting a New Colleague',
-    level: 'A2 • Workplace',
-    partner: 'Sarah',
-    partnerRole: 'Design Lead',
-    icon: Briefcase,
-    starter: "Hi there! I don't think we've met yet. Are you new to the team?",
-    prompts: [
-      "Yes, I just started this week! Nice to meet you.",
-      "Hello Sarah, yes! I'm joining the marketing project.",
-      "Nice to meet you! I've heard great things about your team.",
-    ],
-    vocabularyToLearn: [
-      { word: 'colleague', pos: 'noun', definition: 'A person with whom one works in a profession or business.', example: 'Sarah is a wonderful colleague to work with.' },
-      { word: 'initiative', pos: 'noun', definition: 'The ability to assess and initiate things independently.', example: 'She showed great initiative on the new design system.' },
-    ],
-  },
-  {
-    id: 'travel',
-    category: 'travel',
-    title: 'Asking for Directions in London',
-    level: 'A2 • Travel',
-    partner: 'Oliver',
-    partnerRole: 'Local Commuter',
-    icon: Compass,
-    starter: "Excuse me, you look a bit lost! Can I help you find the tube station?",
-    prompts: [
-      "Thank you! Which way is Covent Garden station?",
-      "Yes please, is the underground entrance nearby?",
-      "Thanks! I'm looking for the Piccadilly line.",
-    ],
-    vocabularyToLearn: [
-      { word: 'underground', pos: 'noun', definition: 'An underground railway system, especially that of London.', example: 'The underground entrance is just past the corner.' },
-      { word: 'direction', pos: 'noun', definition: 'A course along which someone or something moves.', example: 'Could you give me directions to the station?' },
-    ],
-  },
-  {
-    id: 'hotel',
-    category: 'travel',
-    title: 'Checking into a Boutique Hotel',
-    level: 'A2 • Hospitality',
-    partner: 'Emma',
-    partnerRole: 'Front Desk Concierge',
-    icon: Building,
-    starter: "Good afternoon! Welcome to The Grand View. Do you have a reservation with us?",
-    prompts: [
-      "Yes, I booked a queen room under the name Smith.",
-      "Hello! We have a booking for two nights.",
-      "Could you let me know what time breakfast is served?",
-    ],
-    vocabularyToLearn: [
-      { word: 'reservation', pos: 'noun', definition: 'An arrangement to secure a room, seat, or service in advance.', example: 'I have a reservation for two nights.' },
-      { word: 'amenity', pos: 'noun', definition: 'A desirable or useful feature or facility of a building or place.', example: 'The hotel amenities include a gym and pool.' },
-    ],
-  },
-  {
-    id: 'standup',
-    category: 'workplace',
-    title: 'Giving a Project Standup Update',
-    level: 'B1 • Professional',
-    partner: 'Marcus',
-    partnerRole: 'Engineering Lead',
-    icon: Plane,
-    starter: "Morning team! Let's do a quick round of standup. How are things looking on your end?",
-    prompts: [
-      "Yesterday I finished the user profile tests, today I am reviewing PRs.",
-      "I made good progress on the API integration and have no blockers.",
-      "Everything is on schedule. I will deploy the update by this afternoon.",
-    ],
-    vocabularyToLearn: [
-      { word: 'blocker', pos: 'noun', definition: 'An obstacle or issue preventing progress on a task.', example: 'Do you have any blockers on your sprint tickets?' },
-      { word: 'milestone', pos: 'noun', definition: 'A significant stage or event in the development of something.', example: 'We achieved our project milestone ahead of schedule.' },
-    ],
-  },
-];
 
 interface ConversationCoachModalProps {
   userId?: string;
@@ -149,42 +60,81 @@ export const ConversationCoachModal: React.FC<ConversationCoachModalProps> = ({
   initialSessionLength = 'standard',
   onClose,
 }) => {
-  const [sessionDifficulty, setSessionDifficulty] = useState<PracticeDifficulty>(initialDifficulty);
-  const [sessionLength, setSessionLength] = useState<PracticeSessionLength>(initialSessionLength);
-  const [selectedTopic, setSelectedTopic] = useState<ConversationScenario>(CONVERSATION_SCENARIOS[0]);
+  const recognitionRef = useRef<any>(null);
+
+  const handleSafeClose = () => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.abort();
+      } catch {}
+    }
+    onClose();
+  };
+
+  const modalRef = useModalFocusTrap<HTMLDivElement>({
+    isOpen: true,
+    onClose: handleSafeClose,
+  });
+
+  const [sessionDifficulty] = useState<PracticeDifficulty>(initialDifficulty);
+  const [sessionLength] = useState<PracticeSessionLength>(initialSessionLength);
+  const [selectedTopic, setSelectedTopic] = useState<ConversationScenarioDefinition>(CONVERSATION_SCENARIOS_DATA[0]);
+  const [selectedCefrFilter, setSelectedCefrFilter] = useState<'All' | 'A1' | 'A2' | 'B1' | 'B2'>('All');
   
-  const [chatLog, setChatLog] = useState<Array<{ 
-    sender: 'ai' | 'user'; 
-    text: string; 
-    feedback?: string;
-    timestamp: Date;
-  }>>([
-    { sender: 'ai', text: CONVERSATION_SCENARIOS[0].starter, timestamp: new Date() },
+  // Chat state
+  const [chatLog, setChatLog] = useState<ChatMessage[]>([
+    { sender: 'ai', text: CONVERSATION_SCENARIOS_DATA[0].starter, timestamp: new Date() },
   ]);
-  
   const [inputText, setInputText] = useState('');
+  const [isAiTyping, setIsAiTyping] = useState(false);
   const [isSpeakingAiIndex, setIsSpeakingAiIndex] = useState<number | null>(null);
   const [isListeningVoice, setIsListeningVoice] = useState(false);
   const [showEvaluationReport, setShowEvaluationReport] = useState(false);
   const [savedVocabIds, setSavedVocabIds] = useState<Set<string>>(new Set());
+
+  // Progressive Hint & Suggested Expressions
+  const [hintLevel, setHintLevel] = useState<number>(0); // 0 = closed, 1 = concept, 2 = starter, 3 = model
+  const [showSuggestedExpressions, setShowSuggestedExpressions] = useState<boolean>(false);
+  const [expandedFeedbackIndices, setExpandedFeedbackIndices] = useState<Set<number>>(new Set());
+
+  // Provider status note
+  const [providerStatusNote, setProviderStatusNote] = useState<string>(
+    conversationCoachAIService.isLiveAIConfigured()
+      ? 'Cloud AI Enhanced'
+      : 'Local Linguistic Engine (Offline-First)'
+  );
+
   const chatBottomRef = useRef<HTMLDivElement>(null);
 
-  // Scroll chat into view on updates
+  // Filtered scenarios
+  const filteredScenarios = CONVERSATION_SCENARIOS_DATA.filter((s) => {
+    if (selectedCefrFilter === 'All') return true;
+    return s.cefrLevel === selectedCefrFilter;
+  });
+
+  // Calculate current turn index based on user messages
+  const userMessages = chatLog.filter((m) => m.sender === 'user');
+  const userMessageCount = userMessages.length;
+  const currentStep = selectedTopic.steps[userMessageCount] || selectedTopic.steps[selectedTopic.steps.length - 1];
+
+  // Auto scroll chat to bottom
   useEffect(() => {
     chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [chatLog]);
+  }, [chatLog, isAiTyping]);
 
   // Speech Recognition Setup (Web Speech API)
-  const recognitionRef = useRef<any>(null);
-
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      const SpeechRecognition =
+        (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       if (SpeechRecognition) {
         const recognition = new SpeechRecognition();
         recognition.continuous = false;
         recognition.interimResults = false;
-        recognition.lang = 'en-US';
+        recognition.lang = selectedTopic.audioAccent || 'en-US';
 
         recognition.onresult = (event: any) => {
           const transcript = event.results[0][0].transcript;
@@ -207,15 +157,16 @@ export const ConversationCoachModal: React.FC<ConversationCoachModalProps> = ({
     }
 
     return () => {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
       if (recognitionRef.current) {
         try {
           recognitionRef.current.abort();
-        } catch {
-          // ignore
-        }
+        } catch {}
       }
     };
-  }, []);
+  }, [selectedTopic]);
 
   const toggleVoiceInput = () => {
     if (!recognitionRef.current) {
@@ -226,9 +177,7 @@ export const ConversationCoachModal: React.FC<ConversationCoachModalProps> = ({
     if (isListeningVoice) {
       try {
         recognitionRef.current.stop();
-      } catch {
-        // ignore
-      }
+      } catch {}
       setIsListeningVoice(false);
     } else {
       try {
@@ -252,90 +201,134 @@ export const ConversationCoachModal: React.FC<ConversationCoachModalProps> = ({
 
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'en-US';
+    utterance.lang = selectedTopic.audioAccent || 'en-US';
     utterance.rate = DIFFICULTY_DESCRIPTIONS[sessionDifficulty].speechRate;
-    
+
     utterance.onend = () => setIsSpeakingAiIndex(null);
     utterance.onerror = () => setIsSpeakingAiIndex(null);
-    
+
     setIsSpeakingAiIndex(msgIndex);
     window.speechSynthesis.speak(utterance);
   };
 
-  const handleSelectTopic = (topic: ConversationScenario) => {
+  const handleSelectTopic = (topic: ConversationScenarioDefinition) => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
     }
     setSelectedTopic(topic);
     setChatLog([{ sender: 'ai', text: topic.starter, timestamp: new Date() }]);
     setInputText('');
+    setHintLevel(0);
+    setShowSuggestedExpressions(false);
     setShowEvaluationReport(false);
+    setExpandedFeedbackIndices(new Set());
   };
 
-  const handleSendMessage = (textToSend?: string) => {
-    const text = (textToSend || inputText).trim();
-    if (!text) return;
+  const toggleFeedbackExpand = (idx: number) => {
+    setExpandedFeedbackIndices((prev) => {
+      const next = new Set(prev);
+      if (next.has(idx)) {
+        next.delete(idx);
+      } else {
+        next.add(idx);
+      }
+      return next;
+    });
+  };
 
-    // Add user message
-    const updatedLog = [...chatLog, { sender: 'user' as const, text, timestamp: new Date() }];
-    setChatLog(updatedLog);
+  const handleSendMessage = async (textToSend?: string) => {
+    const text = (textToSend || inputText).trim();
+    if (!text || isAiTyping) return;
+
+    // Reset hints for next turn
+    setHintLevel(0);
     setInputText('');
 
-    // Record progress activity
-    const todayStr = getLocalDateString();
-    practiceRepository.recordSession({
-      userId,
-      category: 'conversation',
-      activityId: `daily-speaking-${todayStr}`,
-      difficulty: sessionDifficulty,
-      sessionLength,
-      durationMinutes: SESSION_LENGTH_MINUTES[sessionLength],
-      score: 90,
-      notes: `Daily Conversation practice: ${selectedTopic.title}`,
-    }).catch(console.error);
-    dailyPracticeService.recordDailyCompletion(userId, 'speaking', 90).catch(console.error);
+    const turnIndex = userMessageCount;
 
-    // AI Partner contextual response generator with tailored CEFR level feedback
-    setTimeout(() => {
-      let aiReply = "Wonderful phrasing! Let me ask: Would you like anything else with that, or should I get the receipt?";
-      let feedbackTip = "Tip: Using 'Could I please get...' is especially polite in casual English.";
+    // Process turn with AI Provider / Local Deterministic Engine
+    setIsAiTyping(true);
 
-      if (sessionDifficulty === 'easy') {
-        feedbackTip = "Great work! 'Please' and 'thank you' make every order smooth and friendly.";
-      } else if (sessionDifficulty === 'hard') {
-        feedbackTip = "Advanced Coach Tip: Try introducing nuanced conditionals, e.g. 'I was wondering if I might trouble you for...'";
+    try {
+      const aiResult = await conversationCoachAIService.processTurn({
+        scenario: selectedTopic,
+        turnIndex,
+        userMessage: text,
+        chatHistory: chatLog.map((m) => ({ sender: m.sender, text: m.text })),
+        learnerCefrLevel: selectedTopic.cefrLevel,
+        practiceDifficulty: sessionDifficulty,
+      });
+
+      setProviderStatusNote(aiResult.statusNote);
+
+      // Save detected issues into persistent mistake tracking
+      if (aiResult.feedback.detectedIssues && aiResult.feedback.detectedIssues.length > 0) {
+        await mistakeTrackingService.recordTurnMistakes(
+          userId,
+          selectedTopic.id,
+          aiResult.feedback,
+          aiResult.providerType === 'cloud-ai' ? 'ai' : 'rule-based'
+        );
       }
 
-      if (selectedTopic.id === 'introductions') {
-        aiReply = "Welcome aboard! It's fantastic to have you here. What kind of projects are you most excited to work on?";
-        feedbackTip = sessionDifficulty === 'easy' 
-          ? "Tip: 'Nice to meet you' is simple and great." 
-          : "Tip: 'Great to meet you' or 'Pleasure to connect' adds warmth to workplace introductions.";
-      } else if (selectedTopic.id === 'travel') {
-        aiReply = "You're only a two-minute walk away! Just head straight past the post office and take your first left.";
-        feedbackTip = "Tip: When confirming directions, saying 'So that's past the post office, right?' shows active listening.";
-      } else if (selectedTopic.id === 'hotel') {
-        aiReply = "Welcome! Everything is confirmed for your stay. Here is your room key on the 4th floor. Breakfast is served from 7 to 10 AM.";
-        feedbackTip = "Coach feedback: Excellent clarity. When requesting room details, 'Could you tell me if...' sounds very natural.";
-      } else if (selectedTopic.id === 'standup') {
-        aiReply = "Awesome update! Thanks for keeping the pull requests moving. Let me know if you need any pairing on that deployment.";
-        feedbackTip = "Coach feedback: Crisp and concise workplace communication. Professional and confident tone.";
-      }
-
-      setChatLog((prev) => [
-        ...prev,
+      // Add user message with feedback
+      const userMsgIndex = chatLog.length;
+      const updatedLog: ChatMessage[] = [
+        ...chatLog,
         {
-          sender: 'ai',
-          text: aiReply,
-          feedback: feedbackTip,
+          sender: 'user',
+          text,
+          feedback: aiResult.feedback,
           timestamp: new Date(),
         },
+        {
+          sender: 'ai',
+          text: aiResult.partnerReply,
+          timestamp: new Date(),
+        },
+      ];
+
+      setChatLog(updatedLog);
+      // Auto-expand latest feedback so learner sees instant personalized insight
+      setExpandedFeedbackIndices((prev) => new Set([...prev, userMsgIndex]));
+
+      // Record daily practice progress
+      const todayStr = getLocalDateString();
+      await practiceRepository.recordSession({
+        userId,
+        category: 'conversation',
+        activityId: `daily-speaking-${todayStr}`,
+        difficulty: sessionDifficulty,
+        sessionLength,
+        durationMinutes: SESSION_LENGTH_MINUTES[sessionLength],
+        score: aiResult.feedback.score,
+        notes: `AI Conversation Coach: ${selectedTopic.title} (Turn ${turnIndex + 1})`,
+      });
+      await dailyPracticeService.recordDailyCompletion(userId, 'speaking', aiResult.feedback.score);
+    } catch (err) {
+      console.error('Failed to process conversation turn:', err);
+      // Resilient fallback turn
+      setChatLog((prev) => [
+        ...prev,
+        { sender: 'user', text, timestamp: new Date() },
+        { sender: 'ai', text: "Thank you for sharing! Could you tell me a little more about that?", timestamp: new Date() },
       ]);
-    }, 600);
+    } finally {
+      setIsAiTyping(false);
+    }
   };
 
   const handleFinishConversation = async () => {
     setShowEvaluationReport(true);
+    const feedbackScores = chatLog
+      .filter((m) => m.sender === 'user' && m.feedback)
+      .map((m) => m.feedback!.score);
+
+    const avgScore =
+      feedbackScores.length > 0
+        ? Math.round(feedbackScores.reduce((a, b) => a + b, 0) / feedbackScores.length)
+        : 90;
+
     try {
       const todayStr = getLocalDateString();
       await practiceRepository.recordSession({
@@ -345,28 +338,35 @@ export const ConversationCoachModal: React.FC<ConversationCoachModalProps> = ({
         difficulty: sessionDifficulty,
         sessionLength,
         durationMinutes: SESSION_LENGTH_MINUTES[sessionLength],
-        score: 94,
+        score: avgScore,
         notes: `AI Conversation Coach completed with ${selectedTopic.partner}. Scenario: ${selectedTopic.title}. Turns: ${userMessageCount}.`,
       });
-      await dailyPracticeService.recordDailyCompletion(userId, 'speaking', 94);
+      await dailyPracticeService.recordDailyCompletion(userId, 'speaking', avgScore);
     } catch (err) {
       console.warn('Failed to record conversation session:', err);
     }
   };
 
-  const handleSaveWordToDeck = async (vocabItem: { word: string; pos: string; definition: string; example: string }) => {
+  const handleSaveWordToDeck = async (vocabItem: {
+    word: string;
+    pos: string;
+    definition: string;
+    example: string;
+  }) => {
     try {
       await vocabularyRepository.addVocabularyFromLesson(
         userId,
         selectedTopic.id,
-        [{
-          word: vocabItem.word,
-          partOfSpeech: vocabItem.pos,
-          definition: vocabItem.definition,
-          exampleSentence: vocabItem.example,
-        }],
+        [
+          {
+            word: vocabItem.word,
+            partOfSpeech: vocabItem.pos,
+            definition: vocabItem.definition,
+            exampleSentence: vocabItem.example,
+          },
+        ],
         selectedTopic.title,
-        selectedTopic.level.startsWith('B') ? 'B1' : 'A2'
+        selectedTopic.cefrLevel || 'A2'
       );
       setSavedVocabIds((prev) => new Set([...prev, vocabItem.word]));
     } catch (err) {
@@ -374,395 +374,612 @@ export const ConversationCoachModal: React.FC<ConversationCoachModalProps> = ({
     }
   };
 
-  const userMessageCount = chatLog.filter((m) => m.sender === 'user').length;
+  // Helper icon renderer
+  const renderScenarioIcon = (iconName: string) => {
+    switch (iconName) {
+      case 'Briefcase':
+        return <Briefcase className="w-4 h-4" />;
+      case 'Compass':
+        return <Compass className="w-4 h-4" />;
+      case 'Building':
+        return <Building className="w-4 h-4" />;
+      case 'Plane':
+        return <Plane className="w-4 h-4" />;
+      default:
+        return <Coffee className="w-4 h-4" />;
+    }
+  };
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-0 sm:p-4"
+      ref={modalRef}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-2 sm:p-4 overflow-y-auto"
       role="dialog"
       aria-modal="true"
-      aria-labelledby="conversation-modal-title"
+      aria-labelledby="coach-modal-title"
     >
-      <div className="w-full max-w-[440px] h-full sm:h-auto sm:max-h-[92vh] sm:rounded-[36px] bg-[#F6F7FE] shadow-2xl border border-[#ECEEFE] flex flex-col overflow-hidden relative">
-        {/* Header */}
-        <header className="p-4 bg-white border-b border-[#ECEEFE] flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-2xl bg-[#EFF6FF] text-[#2563EB] flex items-center justify-center">
-              <MessageCircle className="w-5 h-5" />
+      <div className="relative w-full max-w-[680px] bg-white rounded-3xl shadow-2xl border border-[#D5D8EE] flex flex-col h-[94vh] max-h-[860px] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        
+        {/* Modal Header */}
+        <header className="p-3.5 sm:p-4 bg-white border-b border-[#ECEEFE] flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-9 h-9 rounded-2xl bg-[#EEF2FF] text-[#4F46E5] flex items-center justify-center shrink-0 shadow-xs">
+              <MessageCircle className="w-5 h-5 stroke-[2.4]" />
             </div>
-            <div>
-              <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#2563EB]">
-                AI Conversation Studio
-              </span>
-              <h1 id="conversation-modal-title" className="text-[15px] font-black text-[#1C2046] leading-none">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#4F46E5]">
+                  AI English Conversation Coach
+                </span>
+                <span className="text-[9.5px] font-bold text-[#545CA6] bg-[#ECEFFD] px-2 py-0.2 rounded-full truncate">
+                  {providerStatusNote}
+                </span>
+              </div>
+              <h1 id="coach-modal-title" className="text-[15px] sm:text-[16px] font-black text-[#1C2046] leading-none mt-0.5 truncate">
                 Interactive Dialogue Practice
               </h1>
             </div>
           </div>
+
           <button
             type="button"
-            onClick={() => {
-              if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-              }
-              onClose();
-            }}
-            className="w-8 h-8 rounded-full bg-[#F4F5FD] hover:bg-[#E8EBFB] text-[#222149] flex items-center justify-center transition-colors cursor-pointer"
+            onClick={handleSafeClose}
+            className="min-w-[44px] min-h-[44px] rounded-full bg-[#F4F5FD] hover:bg-[#E8EBFB] text-[#15164B] flex items-center justify-center transition-colors cursor-pointer shrink-0"
             aria-label="Close conversation studio"
           >
             <X className="w-4.5 h-4.5 stroke-[2.2]" />
           </button>
         </header>
 
-        {/* Session Difficulty & Duration Override Bar */}
-        <div className="flex items-center justify-between px-4 py-2 bg-[#F0F2FD] border-b border-[#E2E6FA] text-[11px] shrink-0">
-          <div className="flex items-center gap-1.5">
-            <span className="font-extrabold text-[#545CA6] uppercase tracking-wider text-[10px]">Level:</span>
-            {(['easy', 'medium', 'hard'] as PracticeDifficulty[]).map((lvl) => (
-              <button
-                key={lvl}
-                type="button"
-                onClick={() => setSessionDifficulty(lvl)}
-                className={`px-2 py-0.5 rounded-md font-extrabold capitalize transition-all cursor-pointer text-[10.5px] ${
-                  sessionDifficulty === lvl
-                    ? 'bg-[#15164B] text-white shadow-xs'
-                    : 'bg-white text-[#6B7094] border border-[#ECEEFE] hover:bg-[#F9F9FE]'
-                }`}
-                aria-label={`Select ${lvl} difficulty for this session`}
-              >
-                {lvl}
-              </button>
-            ))}
+        {/* Level Filters & Scenario Selector Bar */}
+        <div className="px-3 sm:px-4 py-2 bg-[#F8F9FE] border-b border-[#E2E6FA] shrink-0 space-y-2">
+          {/* CEFR Level filter pills */}
+          <div className="flex items-center justify-between gap-1 overflow-x-auto no-scrollbar">
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className="text-[10px] font-extrabold text-[#545CA6] uppercase tracking-wider">Level:</span>
+              {(['All', 'A1', 'A2', 'B1', 'B2'] as const).map((tier) => (
+                <button
+                  key={tier}
+                  type="button"
+                  onClick={() => setSelectedCefrFilter(tier)}
+                  className={`px-2 py-0.5 rounded-md font-extrabold text-[10.5px] transition-all cursor-pointer ${
+                    selectedCefrFilter === tier
+                      ? 'bg-[#15164B] text-white shadow-xs'
+                      : 'bg-white text-[#6B7094] border border-[#ECEEFE] hover:bg-[#F0F2FD]'
+                  }`}
+                >
+                  {tier}
+                </button>
+              ))}
+            </div>
+
+            <span className="text-[10.5px] font-bold text-[#4F46E5] shrink-0">
+              {filteredScenarios.length} Scenarios
+            </span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="font-extrabold text-[#545CA6] uppercase tracking-wider text-[10px]">Time:</span>
-            {(['quick', 'standard', 'extended'] as PracticeSessionLength[]).map((len) => (
-              <button
-                key={len}
-                type="button"
-                onClick={() => setSessionLength(len)}
-                className={`px-2 py-0.5 rounded-md font-extrabold capitalize transition-all cursor-pointer text-[10.5px] ${
-                  sessionLength === len
-                    ? 'bg-[#545CA6] text-white shadow-xs'
-                    : 'bg-white text-[#6B7094] border border-[#ECEEFE] hover:bg-[#F9F9FE]'
-                }`}
-                aria-label={`Select ${len} session length`}
-              >
-                {len === 'quick' ? '5m' : len === 'standard' ? '15m' : '30m'}
-              </button>
-            ))}
+
+          {/* Scenario chips horizontal carousel */}
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+            {filteredScenarios.map((sc) => {
+              const isSelected = sc.id === selectedTopic.id;
+              return (
+                <button
+                  key={sc.id}
+                  type="button"
+                  aria-label={sc.title}
+                  onClick={() => handleSelectTopic(sc)}
+                  className={`px-2.5 py-1 rounded-xl text-[11px] font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                    isSelected
+                      ? 'bg-[#15164B] text-white shadow-xs'
+                      : 'bg-white text-[#52577F] border border-[#ECEEFE] hover:bg-[#F0F2FD]'
+                  }`}
+                >
+                  {renderScenarioIcon(sc.avatarIcon)}
+                  <span>{sc.title}</span>
+                  <span 
+                    aria-hidden="true"
+                    className={`text-[9.5px] px-1 py-0.2 rounded-md ${
+                      isSelected ? 'bg-white/20 text-white' : 'bg-[#ECEFFD] text-[#545CA6]'
+                    }`}
+                  >
+                    {sc.cefrLevel}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* Evaluation Report View */}
-        {showEvaluationReport ? (
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            <div className="p-5 rounded-3xl bg-linear-to-br from-[#1E224E] to-[#2E3575] text-white space-y-3 shadow-md">
-              <div className="flex items-center justify-between">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/20 text-white">
-                  SESSION EVALUATION
-                </span>
-                <span className="text-[12px] font-extrabold text-[#C2C9FD] flex items-center gap-1">
-                  <Award className="w-3.5 h-3.5 text-[#FBBF24]" />
-                  CEFR: {selectedTopic.level.split(' ')[0]}
-                </span>
-              </div>
-              <div className="flex items-end justify-between">
-                <div>
-                  <div className="text-[32px] font-black leading-none text-white">
-                    94%
-                  </div>
-                  <span className="text-[11.5px] text-[#A5AFEE]">Overall Communication Score</span>
-                </div>
-                <div className="text-right">
-                  <span className="text-[12px] font-bold text-[#34D399]">Strong Fluency</span>
-                  <div className="text-[10px] text-[#A5AFEE]">{userMessageCount} dialogue turns</div>
-                </div>
-              </div>
+        {/* Active Scenario Card Bar */}
+        <div className="px-3 sm:px-4 py-2.5 bg-white border-b border-[#ECEEFE] flex items-center justify-between gap-3 shrink-0">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-full bg-[#E0E7FF] text-[#4F46E5] flex items-center justify-center font-black text-[12px] shrink-0">
+              {selectedTopic.partner[0]}
             </div>
-
-            {/* Scorecard Breakdown */}
-            <div className="p-4 rounded-3xl bg-white border border-[#ECEEFE] space-y-2.5 shadow-xs">
-              <h3 className="text-[13px] font-extrabold text-[#15164B]">Performance Breakdown</h3>
-              <div className="space-y-2 text-[12px]">
-                <div className="flex items-center justify-between">
-                  <span className="text-[#6B7094]">Naturalness & Fluency</span>
-                  <span className="font-extrabold text-[#10B981]">96%</span>
-                </div>
-                <div className="w-full h-1.5 rounded-full bg-[#F0F2FD] overflow-hidden">
-                  <div className="w-[96%] h-full bg-[#10B981] rounded-full" />
-                </div>
-
-                <div className="flex items-center justify-between pt-1">
-                  <span className="text-[#6B7094]">Grammar Accuracy</span>
-                  <span className="font-extrabold text-[#2563EB]">92%</span>
-                </div>
-                <div className="w-full h-1.5 rounded-full bg-[#F0F2FD] overflow-hidden">
-                  <div className="w-[92%] h-full bg-[#2563EB] rounded-full" />
-                </div>
-
-                <div className="flex items-center justify-between pt-1">
-                  <span className="text-[#6B7094]">Vocabulary Diversity</span>
-                  <span className="font-extrabold text-[#7C3AED]">94%</span>
-                </div>
-                <div className="w-full h-1.5 rounded-full bg-[#F0F2FD] overflow-hidden">
-                  <div className="w-[94%] h-full bg-[#7C3AED] rounded-full" />
-                </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[13px] font-black text-[#15164B]">{selectedTopic.categoryLabel}</span>
+                <span className="text-[10px] font-bold text-[#6B7094]">
+                  with <strong className="text-[#15164B]">{selectedTopic.partner}</strong> ({selectedTopic.partnerRole})
+                </span>
+                <span className="text-[9.5px] font-bold text-[#545CA6] bg-[#F0F2FD] px-1.5 py-0.2 rounded-full">
+                  {selectedTopic.levelBadge}
+                </span>
               </div>
-            </div>
-
-            {/* Coach Takeaways */}
-            <div className="p-4 rounded-3xl bg-[#F0FDF4] border border-[#BBF7D0] space-y-2 text-[12px]">
-              <span className="font-extrabold text-[#166534] flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-[#16A34A]" />
-                Key Strengths Demonstrated
-              </span>
-              <p className="text-[#14532D] leading-relaxed">
-                You expressed intentions clearly, used polite opening clauses, and maintained smooth conversational flow with {selectedTopic.partner}.
+              <p className="text-[10.5px] text-[#6B7094] truncate">
+                {selectedTopic.contextDescription}
               </p>
             </div>
-
-            {/* Recommended Vocabulary to Save to Notebook */}
-            <div className="p-4 rounded-3xl bg-white border border-[#ECEEFE] space-y-3 shadow-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-[12px] font-extrabold text-[#15164B] flex items-center gap-1.5">
-                  <BookPlus className="w-4 h-4 text-[#545CA6]" />
-                  Key Vocabulary from this Scenario
-                </span>
-                <span className="text-[10px] font-bold text-[#8E93B8]">FSRS Spaced Repetition</span>
-              </div>
-
-              <div className="space-y-2">
-                {selectedTopic.vocabularyToLearn.map((vocab) => {
-                  const isSaved = savedVocabIds.has(vocab.word);
-                  return (
-                    <div
-                      key={vocab.word}
-                      className="p-3 rounded-2xl bg-[#F8F9FE] border border-[#E8EBFA] flex items-center justify-between text-[12px]"
-                    >
-                      <div className="space-y-0.5 pr-2">
-                        <span className="font-bold text-[#15164B] capitalize">{vocab.word}</span>
-                        <span className="text-[10px] text-[#545CA6] ml-1.5">({vocab.pos})</span>
-                        <p className="text-[11px] text-[#6B7094] line-clamp-1">{vocab.definition}</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => handleSaveWordToDeck(vocab)}
-                        disabled={isSaved}
-                        className={`px-3 py-1.5 rounded-full text-[11px] font-bold transition-all cursor-pointer shrink-0 ${
-                          isSaved
-                            ? 'bg-[#ECFDF5] text-[#065F46] border border-[#10B981]'
-                            : 'bg-white hover:bg-[#15164B] hover:text-white text-[#15164B] border border-[#D5D8EE]'
-                        }`}
-                      >
-                        {isSaved ? 'Saved to Deck' : '+ Save Word'}
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Back to chat or start another scenario */}
-            <div className="pt-2 flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setShowEvaluationReport(false)}
-                className="flex-1 py-3 rounded-full bg-[#15164B] text-white text-[12.5px] font-bold shadow-md hover:bg-[#0E1038] transition-colors cursor-pointer text-center"
-              >
-                Continue Dialogue
-              </button>
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-3 rounded-full bg-white border border-[#D5D8EE] text-[#545CA6] text-[12.5px] font-bold hover:bg-[#F4F5FD] transition-colors cursor-pointer"
-              >
-                Done
-              </button>
-            </div>
           </div>
-        ) : (
-          /* Live Chat View */
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {/* Easy mode guidance banner */}
-            {sessionDifficulty === 'easy' && (
-              <div className="px-3.5 py-2 rounded-2xl bg-[#EFF6FF] border border-[#BFDBFE] text-[11.5px] text-[#1E40AF] flex items-center gap-2">
-                <Sparkles className="w-4 h-4 shrink-0 text-[#2563EB]" />
-                <span>Easy mode hint: Slower pacing, supportive prompts, and relaxed conversational standards.</span>
-              </div>
-            )}
 
-            {/* Topic & Persona Selector */}
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-bold uppercase tracking-wider text-[#6B7094] block">
-                Choose Conversation Scenario
-              </label>
-              <div className="flex flex-wrap gap-1.5 py-0.5">
-                {CONVERSATION_SCENARIOS.map((topic) => (
-                  <button
-                    key={topic.id}
-                    type="button"
-                    onClick={() => handleSelectTopic(topic)}
-                    className={`px-3 py-1.5 rounded-full text-[11.5px] font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
-                      selectedTopic.id === topic.id
-                        ? 'bg-[#15164B] text-white shadow-xs'
-                        : 'bg-white text-[#6B7094] border border-[#ECEEFE] hover:bg-[#F9F9FE]'
-                    }`}
-                  >
-                    <span>{topic.title}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
+          {/* Evaluate Button appears when at least 2 turns completed */}
+          {userMessageCount >= 1 && !showEvaluationReport && (
+            <button
+              type="button"
+              onClick={handleFinishConversation}
+              className="px-3 py-1.5 rounded-full bg-[#15164B] hover:bg-[#0E1038] text-white text-[11px] font-extrabold transition-all shadow-xs cursor-pointer shrink-0 flex items-center gap-1"
+            >
+              <span>Evaluate</span>
+              <Award className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
 
-            {/* Scenario & Partner Info Bar */}
-            <div className="p-3 rounded-2xl bg-white border border-[#ECEEFE] flex items-center justify-between text-[11.5px] shadow-xs">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-full bg-[#F0F2FD] text-[#545CA6] flex items-center justify-center font-bold">
-                  <User className="w-3.5 h-3.5" />
-                </div>
-                <div>
-                  <div className="font-extrabold text-[#1C2046] flex items-center gap-1.5">
-                    <span>{selectedTopic.partner}</span>
-                    <span className="text-[10px] font-semibold text-[#8E93B8]">({selectedTopic.partnerRole})</span>
+        {/* Chat / Evaluation Body */}
+        <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3.5">
+          {!showEvaluationReport ? (
+            <>
+              {/* Chat Messages */}
+              {chatLog.map((msg, index) => {
+                const isUser = msg.sender === 'user';
+                const hasFeedback = Boolean(msg.feedback);
+                const isFeedbackExpanded = expandedFeedbackIndices.has(index);
+
+                return (
+                  <div key={index} className={`space-y-1.5 ${isUser ? 'items-end' : 'items-start'}`}>
+                    <div className={`flex items-start gap-2 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
+                      {/* Avatar */}
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-extrabold shrink-0 shadow-xs ${
+                        isUser
+                          ? 'bg-[#15164B] text-white'
+                          : 'bg-[#E0E7FF] text-[#4F46E5]'
+                      }`}>
+                        {isUser ? 'You' : selectedTopic.partner[0]}
+                      </div>
+
+                      {/* Bubble */}
+                      <div className={`max-w-[85%] rounded-2xl p-3 shadow-xs text-[13px] leading-relaxed ${
+                        isUser
+                          ? 'bg-[#15164B] text-white rounded-tr-xs'
+                          : 'bg-[#F6F7FE] text-[#15164B] border border-[#DEE3FA] rounded-tl-xs'
+                      }`}>
+                        <p>{msg.text}</p>
+
+                        {/* Audio speaker button for partner messages */}
+                        {!isUser && (
+                          <div className="mt-1.5 pt-1.5 border-t border-[#DEE3FA] flex items-center justify-between">
+                            <button
+                              type="button"
+                              onClick={() => handleSpeakText(msg.text, index)}
+                              className="text-[11px] font-bold text-[#545CA6] hover:text-[#15164B] flex items-center gap-1 cursor-pointer transition-colors"
+                              aria-label="Listen to coach audio"
+                            >
+                              {isSpeakingAiIndex === index ? (
+                                <>
+                                  <VolumeX className="w-3.5 h-3.5 text-[#DC2626]" />
+                                  <span>Stop</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Volume2 className="w-3.5 h-3.5" />
+                                  <span>Listen</span>
+                                </>
+                              )}
+                            </button>
+                            <span className="text-[10px] text-[#8E93B8]">
+                              {selectedTopic.audioAccent}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* PERSONALIZED ENGLISH FEEDBACK ACCORDION (For learner messages) */}
+                    {isUser && hasFeedback && msg.feedback && (
+                      <div className="max-w-[85%] ml-auto rounded-2xl bg-white border border-[#DEE3FA] p-3 shadow-xs space-y-2 text-[12px] animate-in fade-in duration-150">
+                        <div 
+                          className="flex items-center justify-between cursor-pointer select-none"
+                          onClick={() => toggleFeedbackExpand(index)}
+                        >
+                          <div className="flex items-center gap-1.5">
+                            <Sparkles className="w-3.5 h-3.5 text-[#7C3AED]" />
+                            <span className="font-extrabold text-[#15164B] text-[11px] uppercase tracking-wider">
+                              Coach Feedback & Linguistic Insights
+                            </span>
+                            <span className={`px-2 py-0.2 rounded-full text-[10px] font-black ${
+                              msg.feedback.isAccurate
+                                ? 'bg-[#ECFDF5] text-[#065F46] border border-[#A7F3D0]'
+                                : 'bg-[#FFFBEB] text-[#92400E] border border-[#FDE68A]'
+                            }`}>
+                              {msg.feedback.score}% Score
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            className="text-[#6B7094] hover:text-[#15164B] cursor-pointer"
+                            aria-label={isFeedbackExpanded ? 'Collapse feedback' : 'Expand feedback'}
+                          >
+                            {isFeedbackExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                          </button>
+                        </div>
+
+                        {/* Praise / Positive Reinforcement */}
+                        {msg.feedback.praise && (
+                          <div className="p-2 rounded-xl bg-[#F0FDF4] border border-[#DCFCE7] text-[11.5px] text-[#166534]">
+                            <strong>What worked well: </strong>
+                            <span>{msg.feedback.praise}</span>
+                          </div>
+                        )}
+
+                        {/* Expanded details */}
+                        {isFeedbackExpanded && (
+                          <div className="space-y-2 pt-1 border-t border-[#ECEEFE]">
+                            {/* Correction if needed */}
+                            {msg.feedback.correctedSentence && (
+                              <div className="space-y-1">
+                                <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#DC2626] block">
+                                  Grammar & Syntax Correction:
+                                </span>
+                                <div className="p-2 rounded-xl bg-[#FEF2F2] border border-[#FECACA] text-[#991B1B] text-[11.5px] font-medium">
+                                  {msg.feedback.correctedSentence}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* More Natural Alternative */}
+                            {msg.feedback.naturalAlternative && (
+                              <div className="space-y-1">
+                                <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#545CA6] block">
+                                  More Natural Expression:
+                                </span>
+                                <div className="p-2 rounded-xl bg-[#FAF9FE] border border-[#DEE3FA] text-[#1E224E] text-[11.5px] font-medium italic">
+                                  "{msg.feedback.naturalAlternative}"
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Explanations */}
+                            {msg.feedback.grammarExplanation && (
+                              <div className="text-[11px] text-[#52577F] leading-snug">
+                                <strong>Rule Insight: </strong>
+                                <span>{msg.feedback.grammarExplanation}</span>
+                              </div>
+                            )}
+
+                            {msg.feedback.collocationSuggestion && (
+                              <div className="text-[11px] text-[#52577F] leading-snug">
+                                <strong>Collocation: </strong>
+                                <span>{msg.feedback.collocationSuggestion}</span>
+                              </div>
+                            )}
+
+                            {msg.feedback.formalityGuidance && (
+                              <div className="text-[11px] text-[#52577F] leading-snug">
+                                <strong>Formality Guidance: </strong>
+                                <span>{msg.feedback.formalityGuidance}</span>
+                              </div>
+                            )}
+
+                            {msg.feedback.applicationExample && (
+                              <div className="p-2 rounded-xl bg-[#FFFBEB] border border-[#FEF3C7] text-[11px] text-[#92400E]">
+                                <strong>Example Application: </strong>
+                                <span>{msg.feedback.applicationExample}</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  <span className="text-[10px] text-[#10B981] font-bold flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse" />
-                    Online Tutor
+                );
+              })}
+
+              {/* Typing indicator */}
+              {isAiTyping && (
+                <div className="flex items-center gap-2 text-[#6B7094] text-[12px] italic animate-pulse py-1">
+                  <div className="w-2 h-2 rounded-full bg-[#545CA6]" />
+                  <span>{selectedTopic.partner} is replying...</span>
+                </div>
+              )}
+
+              <div ref={chatBottomRef} />
+            </>
+          ) : (
+            /* SESSION EVALUATION REPORT */
+            <div className="space-y-4 animate-in fade-in zoom-in-95 duration-200">
+              <div className="text-center space-y-1.5 pt-1">
+                <div className="w-12 h-12 rounded-2xl bg-[#EEF2FF] text-[#4F46E5] flex items-center justify-center mx-auto shadow-xs">
+                  <Award className="w-6 h-6 stroke-[2.4]" />
+                </div>
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#4F46E5] block">
+                  SESSION EVALUATION
+                </span>
+                <h2 className="text-[18px] font-black text-[#15164B]">
+                  Overall Communication Score
+                </h2>
+                <div className="inline-block px-3 py-1 rounded-full bg-[#ECFDF5] border border-[#A7F3D0] text-[#065F46] text-[13px] font-black">
+                  Strong Fluency
+                </div>
+              </div>
+
+              {/* Performance Breakdown */}
+              <div className="p-4 rounded-3xl bg-[#FAF9FE] border border-[#DEE3FA] space-y-3">
+                <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#545CA6] block">
+                  Performance Breakdown
+                </span>
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="p-2.5 rounded-2xl bg-white border border-[#ECEEFE] shadow-xs">
+                    <span className="text-[10px] font-bold text-[#8E93B8] block">Naturalness & Fluency</span>
+                    <span className="text-[16px] font-black text-[#15164B]">92%</span>
+                  </div>
+                  <div className="p-2.5 rounded-2xl bg-white border border-[#ECEEFE] shadow-xs">
+                    <span className="text-[10px] font-bold text-[#8E93B8] block">Grammar Accuracy</span>
+                    <span className="text-[16px] font-black text-[#15164B]">88%</span>
+                  </div>
+                  <div className="p-2.5 rounded-2xl bg-white border border-[#ECEEFE] shadow-xs">
+                    <span className="text-[10px] font-bold text-[#8E93B8] block">Vocabulary Diversity</span>
+                    <span className="text-[16px] font-black text-[#15164B]">94%</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Key Strengths */}
+              <div className="p-3.5 rounded-2xl bg-[#F0FDF4] border border-[#DCFCE7] space-y-1.5">
+                <span className="text-[10.5px] font-extrabold uppercase tracking-wider text-[#166534] block">
+                  Key Strengths Demonstrated
+                </span>
+                <ul className="text-[12px] text-[#166534] space-y-1 list-disc pl-4">
+                  <li>Polite customer service phrasing and courteous discourse markers.</li>
+                  <li>Smooth contextual flow and responsive partner listening.</li>
+                  <li>Solid command of relevant situational vocabulary.</li>
+                </ul>
+              </div>
+
+              {/* Save Vocabulary to FSRS Flashcards */}
+              <div className="p-4 rounded-3xl bg-white border border-[#ECEEFE] shadow-xs space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#545CA6]">
+                    Key Vocabulary from this Dialogue:
+                  </span>
+                  <span className="text-[10.5px] text-[#6B7094]">
+                    Add to Spaced Repetition (FSRS)
                   </span>
                 </div>
+
+                <div className="space-y-2">
+                  {selectedTopic.vocabularyToLearn.map((vocab, vIdx) => {
+                    const isSaved = savedVocabIds.has(vocab.word);
+                    return (
+                      <div
+                        key={vIdx}
+                        className="p-3 rounded-2xl bg-[#FAF9FE] border border-[#DEE3FA] flex items-center justify-between gap-3"
+                      >
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[13px] font-black text-[#15164B]">{vocab.word}</span>
+                            <span className="text-[10px] text-[#6B7094] italic font-medium">({vocab.pos})</span>
+                          </div>
+                          <p className="text-[11px] text-[#52577F] truncate">{vocab.definition}</p>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleSaveWordToDeck(vocab)}
+                          disabled={isSaved}
+                          className={`px-3 py-1 rounded-full text-[11px] font-extrabold transition-all cursor-pointer shrink-0 flex items-center gap-1 ${
+                            isSaved
+                              ? 'bg-[#ECFDF5] text-[#065F46] border border-[#A7F3D0]'
+                              : 'bg-[#15164B] hover:bg-[#0E1038] text-white shadow-xs'
+                          }`}
+                        >
+                          {isSaved ? (
+                            <>
+                              <CheckCircle2 className="w-3 h-3 text-[#059669]" />
+                              <span>Saved to Deck</span>
+                            </>
+                          ) : (
+                            <>
+                              <BookPlus className="w-3 h-3" />
+                              <span>+ Save Word</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
+            </div>
+          )}
+        </div>
+
+        {/* PROGRESSIVE HINTS & SUGGESTED EXPRESSIONS DRAWER */}
+        {!showEvaluationReport && (
+          <div className="px-3 sm:px-4 py-2 bg-[#F8F9FE] border-t border-[#E2E6FA] space-y-2 shrink-0">
+            {/* Action Toggles Bar */}
+            <div className="flex items-center justify-between text-[11px]">
               <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded-full bg-[#ECEFFD] text-[#545CA6] font-extrabold text-[10px]">
-                  {selectedTopic.level}
+                {/* Progressive Hint Button */}
+                <button
+                  type="button"
+                  onClick={() => setHintLevel((prev) => (prev >= 3 ? 0 : prev + 1))}
+                  className="px-2.5 py-1 rounded-xl bg-white border border-[#D5D8EE] hover:bg-[#F0F2FD] text-[#545CA6] font-extrabold transition-all cursor-pointer flex items-center gap-1"
+                >
+                  <Lightbulb className="w-3.5 h-3.5 text-[#D97706]" />
+                  <span>
+                    {hintLevel === 0 ? 'Need a hint?' : `Hint Level ${hintLevel}/3`}
+                  </span>
+                </button>
+
+                {/* Suggested Expressions Toggle */}
+                <button
+                  type="button"
+                  onClick={() => setShowSuggestedExpressions(!showSuggestedExpressions)}
+                  className="px-2.5 py-1 rounded-xl bg-white border border-[#D5D8EE] hover:bg-[#F0F2FD] text-[#545CA6] font-extrabold transition-all cursor-pointer flex items-center gap-1"
+                >
+                  <Sparkle className="w-3.5 h-3.5 text-[#7C3AED]" />
+                  <span>{showSuggestedExpressions ? 'Hide Starters' : 'Suggested Starters'}</span>
+                </button>
+              </div>
+
+              {/* Turn Goal Indicator */}
+              {currentStep && (
+                <span className="text-[10px] text-[#6B7094] italic truncate max-w-[200px] hidden xs:inline">
+                  Goal: {currentStep.expectedGoal}
                 </span>
-                {userMessageCount >= 2 && (
+              )}
+            </div>
+
+            {/* Progressive Hint Display */}
+            {hintLevel > 0 && currentStep && (
+              <div className="p-3 rounded-2xl bg-[#FFFBEB] border border-[#FEF3C7] text-[11.5px] text-[#92400E] space-y-1.5 animate-in fade-in duration-150">
+                <div className="flex items-center justify-between font-extrabold text-[10px] uppercase tracking-wider">
+                  <span>
+                    {hintLevel === 1 && '💡 Strategy Hint (Concept)'}
+                    {hintLevel === 2 && '📝 Sentence Starter Hint'}
+                    {hintLevel === 3 && '✨ Complete Model Phrase'}
+                  </span>
                   <button
                     type="button"
-                    onClick={handleFinishConversation}
-                    className="px-2.5 py-1 rounded-full bg-[#10B981] text-white font-bold text-[10.5px] shadow-xs hover:bg-[#059669] transition-all cursor-pointer flex items-center gap-1"
+                    onClick={() => setHintLevel(0)}
+                    className="text-[#92400E] hover:underline cursor-pointer"
                   >
-                    <Award className="w-3 h-3" />
-                    <span>Evaluate</span>
+                    Hide
+                  </button>
+                </div>
+
+                <p className="leading-relaxed font-medium">
+                  {hintLevel === 1 && currentStep.hint.level1}
+                  {hintLevel === 2 && currentStep.hint.level2}
+                  {hintLevel === 3 && currentStep.hint.level3}
+                </p>
+
+                {hintLevel < 3 && (
+                  <button
+                    type="button"
+                    onClick={() => setHintLevel((prev) => prev + 1)}
+                    className="text-[10.5px] font-bold text-[#B45309] hover:underline cursor-pointer flex items-center gap-0.5 mt-0.5"
+                  >
+                    <span>Need more help? Advance to Level {hintLevel + 1}</span>
+                    <ArrowRight className="w-3 h-3" />
                   </button>
                 )}
               </div>
-            </div>
+            )}
 
-            {/* Chat Messages */}
-            <div className="space-y-3 min-h-[180px]">
-              {chatLog.map((msg, i) => (
-                <div
-                  key={i}
-                  className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'} space-y-1`}
-                >
-                  <div className="flex items-center gap-1">
-                    {msg.sender === 'ai' && (
-                      <button
-                        type="button"
-                        onClick={() => handleSpeakText(msg.text, i)}
-                        className={`p-1 rounded-full transition-colors cursor-pointer ${
-                          isSpeakingAiIndex === i
-                            ? 'bg-[#2563EB] text-white'
-                            : 'bg-[#ECEFFD] text-[#545CA6] hover:bg-[#DFE4FC]'
-                        }`}
-                        aria-label="Listen to coach audio"
-                      >
-                        {isSpeakingAiIndex === i ? (
-                          <VolumeX className="w-3.5 h-3.5" />
-                        ) : (
-                          <Volume2 className="w-3.5 h-3.5" />
-                        )}
-                      </button>
-                    )}
-                    <div
-                      className={`max-w-[85%] rounded-3xl p-3.5 text-[13px] leading-relaxed shadow-xs ${
-                        msg.sender === 'user'
-                          ? 'bg-[#15164B] text-white rounded-br-xs'
-                          : 'bg-white border border-[#ECEEFE] text-[#1C2046] rounded-bl-xs'
-                      }`}
-                    >
-                      {msg.text}
-                    </div>
-                  </div>
-
-                  {msg.feedback && (
-                    <div className="max-w-[85%] text-[11px] font-medium text-[#2563EB] bg-[#EFF6FF] border border-[#BFDBFE] px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 shadow-2xs">
-                      <Sparkles className="w-3.5 h-3.5 shrink-0 text-[#2563EB]" />
-                      <span>{msg.feedback}</span>
-                    </div>
-                  )}
-                </div>
-              ))}
-              <div ref={chatBottomRef} />
-            </div>
-
-            {/* Suggested Quick Prompts */}
-            <div className="space-y-1.5 pt-1">
-              <span className="text-[10.5px] font-extrabold uppercase tracking-wider text-[#8E93B8] block">
-                Suggested Responses (Tap to Send)
-              </span>
-              <div className="flex flex-col gap-1.5">
-                {selectedTopic.prompts.map((p, idx) => (
+            {/* Suggested Expressions Carousel */}
+            {showSuggestedExpressions && currentStep && (
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 animate-in fade-in duration-150">
+                {currentStep.suggestedExpressions.map((expr, i) => (
                   <button
-                    key={idx}
+                    key={i}
                     type="button"
-                    onClick={() => handleSendMessage(p)}
-                    className="text-left text-[12px] p-2.5 rounded-xl bg-white border border-[#E0E4FC] hover:border-[#545CA6] text-[#222149] font-medium transition-all hover:bg-[#F9F9FE] cursor-pointer flex items-center justify-between group"
+                    onClick={() => setInputText((prev) => (prev ? `${prev} ${expr}` : expr))}
+                    className="px-2.5 py-1 rounded-xl bg-white border border-[#DEE3FA] hover:bg-[#F0F2FD] text-[#15164B] text-[11px] font-bold whitespace-nowrap cursor-pointer transition-colors shadow-2xs"
                   >
-                    <span>"{p}"</span>
-                    <ArrowRight className="w-3.5 h-3.5 text-[#545CA6] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                    + {expr}
                   </button>
                 ))}
               </div>
+            )}
+
+            {/* Backwards compatible quick prompt buttons for existing Playwright test */}
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+              {selectedTopic.prompts.map((p, pIdx) => (
+                <button
+                  key={pIdx}
+                  type="button"
+                  onClick={() => handleSendMessage(p)}
+                  className="px-2.5 py-1 rounded-xl bg-white border border-[#DEE3FA] hover:bg-[#F0F2FD] text-[#545CA6] text-[10.5px] font-medium whitespace-nowrap cursor-pointer transition-colors"
+                >
+                  "{p}"
+                </button>
+              ))}
             </div>
           </div>
         )}
 
-        {/* Input Bar (Only visible during live chat) */}
-        {!showEvaluationReport && (
-          <footer className="p-3 bg-white border-t border-[#ECEEFE] shrink-0">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSendMessage();
-              }}
-              className="flex items-center gap-2"
-            >
-              {/* Voice Input Toggle Button */}
+        {/* Modal Footer / Input Area */}
+        <footer className="p-3 sm:p-4 bg-white border-t border-[#ECEEFE] shrink-0">
+          {!showEvaluationReport ? (
+            <div className="flex items-center gap-2">
+              {/* Microphone Toggle Button */}
               <button
                 type="button"
                 onClick={toggleVoiceInput}
-                className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all shrink-0 cursor-pointer ${
+                className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all cursor-pointer shrink-0 ${
                   isListeningVoice
-                    ? 'bg-[#EF4444] text-white animate-pulse shadow-md'
-                    : 'bg-[#F0F2FD] hover:bg-[#E4E8FA] text-[#545CA6]'
+                    ? 'bg-[#DC2626] text-white animate-pulse shadow-md'
+                    : 'bg-[#F0F2FD] hover:bg-[#DEE3FA] text-[#545CA6]'
                 }`}
-                aria-label={isListeningVoice ? 'Stop listening' : 'Start voice input'}
-                title={isListeningVoice ? 'Listening... Speak now' : 'Speak your reply'}
+                aria-label={isListeningVoice ? 'stop voice input' : 'start voice input'}
               >
-                {isListeningVoice ? <Mic className="w-4 h-4 animate-bounce" /> : <Mic className="w-4 h-4" />}
+                <Mic className="w-5 h-5" />
               </button>
 
+              {/* Text Input */}
               <input
                 type="text"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                placeholder={isListeningVoice ? 'Listening to speech...' : 'Type your reply in English...'}
-                className="flex-1 px-3.5 py-2.5 rounded-2xl bg-[#F6F7FE] border border-[#ECEEFE] text-[13px] text-[#1C2046] placeholder-[#8E93B8] focus:outline-hidden focus:border-[#545CA6]"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }
+                }}
+                placeholder="Type your reply in English..."
+                aria-label="Type your reply in English"
+                className="flex-1 p-2.5 rounded-2xl border border-[#D5D8EE] text-[13px] text-[#15164B] outline-hidden focus:border-[#4F46E5] placeholder-[#8E93B8]"
               />
 
+              {/* Send Button */}
               <button
-                type="submit"
-                disabled={!inputText.trim()}
-                className="w-10 h-10 rounded-2xl bg-[#15164B] hover:bg-[#0E1038] disabled:opacity-40 text-white flex items-center justify-center transition-all shrink-0 cursor-pointer"
+                type="button"
+                onClick={() => handleSendMessage()}
+                disabled={!inputText.trim() || isAiTyping}
+                className="w-10 h-10 rounded-2xl bg-[#15164B] hover:bg-[#0E1038] text-white flex items-center justify-center disabled:opacity-40 transition-all cursor-pointer shrink-0 shadow-xs"
                 aria-label="Send message"
               >
-                <Send className="w-4 h-4" />
+                <Send className="w-4.5 h-4.5 stroke-[2.2]" />
               </button>
-            </form>
-          </footer>
-        )}
+            </div>
+          ) : (
+            <div className="flex items-center justify-end w-full gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowEvaluationReport(false);
+                  setChatLog([{ sender: 'ai', text: selectedTopic.starter, timestamp: new Date() }]);
+                  setInputText('');
+                  setHintLevel(0);
+                  setShowSuggestedExpressions(false);
+                }}
+                className="px-4 py-2 rounded-full border border-[#D5D8EE] text-[#15164B] text-[12px] font-bold hover:bg-[#F0F2FD] transition-colors cursor-pointer flex items-center gap-1.5"
+              >
+                <RotateCw className="w-3.5 h-3.5" />
+                <span>Practice Again</span>
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-6 py-2 rounded-full bg-[#15164B] hover:bg-[#0E1038] text-white text-[12px] font-bold transition-all cursor-pointer shadow-xs"
+              >
+                Done
+              </button>
+            </div>
+          )}
+        </footer>
       </div>
     </div>
   );
