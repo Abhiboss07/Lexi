@@ -183,6 +183,7 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-0 sm:p-4"
       role="dialog"
       aria-modal="true"
+      aria-label="Interactive Lesson Player"
       aria-labelledby="lesson-header-title"
     >
       <div className="w-full max-w-[430px] h-full sm:h-auto sm:max-h-[92vh] sm:rounded-[36px] bg-[#F6F7FE] shadow-2xl border border-[#ECEEFE] flex flex-col overflow-hidden relative">

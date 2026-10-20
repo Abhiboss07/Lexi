@@ -4,6 +4,10 @@ export * from './curriculum';
 export * from './vocabulary';
 export * from './practicePreferences';
 export * from './dailyPractice';
+export * from './achievements';
+export * from './quickPicks';
+export * from './scenarios';
+export * from './adaptivePlan';
 
 export interface UserProfile {
   id: string;

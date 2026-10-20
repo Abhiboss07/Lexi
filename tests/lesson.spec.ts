@@ -123,7 +123,7 @@ test.describe('Lexi Interactive Lesson Engine (Phase 5)', () => {
     await expect(page.getByRole('dialog')).toBeVisible();
 
     // Launch interactive lesson
-    const startBtn = page.getByRole('button', { name: 'Start Interactive Lesson' });
+    const startBtn = page.getByRole('button', { name: /Start interactive curriculum lesson|Start Interactive Lesson/i });
     await expect(startBtn).toBeVisible();
     await startBtn.click();
 

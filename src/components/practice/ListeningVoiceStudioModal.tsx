@@ -19,6 +19,7 @@ import {
 import type { PracticeDifficulty, PracticeSessionLength } from '../../types/practicePreferences';
 import { SESSION_LENGTH_MINUTES } from '../../types/practicePreferences';
 import { practiceRepository } from '../../db/practiceRepository';
+import { dailyPracticeService, getLocalDateString } from '../../services/dailyPracticeService';
 
 export type ListeningStudioMode = 'comprehension' | 'dictation' | 'retell' | 'voice_ai';
 
@@ -257,7 +258,7 @@ export const ListeningVoiceStudioModal: React.FC<ListeningVoiceStudioModalProps>
     const scorePercent = Math.round((correctCount / total) * 100);
 
     try {
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = getLocalDateString();
       await practiceRepository.recordSession({
         userId,
         category: 'listening',
@@ -268,6 +269,7 @@ export const ListeningVoiceStudioModal: React.FC<ListeningVoiceStudioModalProps>
         score: scorePercent,
         notes: `Daily Listening Studio completed. Scenario: ${scenario.title}. Accuracy: ${scorePercent}%. Speed: ${playbackSpeed}x.`,
       });
+      await dailyPracticeService.recordDailyCompletion(userId, 'listening', scorePercent);
     } catch (err) {
       console.warn('Failed to record listening session:', err);
     }

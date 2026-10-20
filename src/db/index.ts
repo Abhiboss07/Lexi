@@ -12,6 +12,7 @@ import type {
   BookmarkedIdiomRecord,
 } from '../types/quickPicks';
 import type { NotificationEventRecord } from '../types/notifications';
+import type { DailyStudyPlanRecord } from '../types/adaptivePlan';
 
 export class LexiDatabase extends Dexie {
   users!: Table<UserProfile, string>;
@@ -27,6 +28,7 @@ export class LexiDatabase extends Dexie {
   activityCompletions!: Table<ActivityCompletionRecord, string>;
   bookmarkedIdioms!: Table<BookmarkedIdiomRecord, string>;
   notificationEvents!: Table<NotificationEventRecord, string>;
+  dailyStudyPlans!: Table<DailyStudyPlanRecord, string>;
 
   constructor() {
     super('LexiDatabase');
@@ -113,6 +115,24 @@ export class LexiDatabase extends Dexie {
       notificationEvents: 'id, userId, type, date, timestamp, status',
     }).upgrade(() => {
       // Safe, versioned migration preserving all existing records and preferences
+    });
+    this.version(8).stores({
+      users: 'id, currentStreak, lastActiveDate',
+      curriculumProgress: 'userId, currentLevel, updatedAt',
+      vocabularyCards: 'id, userId, word, cefrLevel, state, due, lastReviewedAt, sourceLessonId',
+      reviewLogs: 'id, cardId, userId, rating, reviewedAt',
+      practicePreferences: 'userId, defaultDifficulty, defaultSessionLength, dailyGoalMinutes',
+      practiceSessions: 'id, userId, category, difficulty, sessionLength, completedAt',
+      quickNotes: 'id, userId, topic, category, isPinned, createdAt, updatedAt',
+      savedDrawings: 'id, userId, createdAt',
+      dailyChallenges: 'id, userId, date, status, submittedAt',
+      wordQuestResults: 'id, userId, date, completedAt',
+      activityCompletions: 'id, userId, activityId, date, completedAt',
+      bookmarkedIdioms: 'id, userId, expression, bookmarkedAt',
+      notificationEvents: 'id, userId, type, date, timestamp, status',
+      dailyStudyPlans: 'id, userId, date, updatedAt',
+    }).upgrade(() => {
+      // Safe, versioned migration preserving all existing records, progress, and preferences
     });
   }
 }

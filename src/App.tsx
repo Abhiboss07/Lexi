@@ -49,6 +49,15 @@ import { NotificationToast } from './components/notifications/NotificationToast'
 import { notificationService } from './services/notificationService';
 import { systemNotificationService } from './services/systemNotificationService';
 import type { SmartNotification } from './types/notifications';
+import { CurriculumBrowserModal } from './components/modals/CurriculumBrowserModal';
+import { curriculumProgressionService, type CurriculumDisplaySummary } from './services/curriculumProgressionService';
+import { curriculumRepository } from './db/curriculumRepository';
+import type { CurriculumProgressionState } from './types/curriculum';
+import type { CurriculumSearchResult } from './services/curriculumSearchService';
+import { InteractiveScenarioModal } from './components/modals/InteractiveScenarioModal';
+import { scenarioSimulationService } from './services/scenarioSimulationService';
+import { TodaysLearningPlan } from './components/home/TodaysLearningPlan';
+import type { DailyStudyPlanItem } from './types/adaptivePlan';
 
 export function App() {
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -61,6 +70,9 @@ export function App() {
   const [activeQuickPickModal, setActiveQuickPickModal] = useState<'quest' | 'notes' | 'sketch' | 'challenge' | null>(null);
   const [isActivityHubOpen, setIsActivityHubOpen] = useState(false);
   const [isPreferencesOpen, setIsPreferencesOpen] = useState(false);
+  const [isCurriculumBrowserOpen, setIsCurriculumBrowserOpen] = useState(false);
+  const [curriculumSummary, setCurriculumSummary] = useState<CurriculumDisplaySummary | null>(null);
+  const [curriculumProgressState, setCurriculumProgressState] = useState<CurriculumProgressionState | null>(null);
   const [activeHubActivity, setActiveHubActivity] = useState<ActivityHubKey | null>(null);
   const [showSplash, setShowSplash] = useState(() => {
     if (typeof window === 'undefined') return false;
@@ -81,6 +93,7 @@ export function App() {
     title: '',
     description: '',
   });
+  const [activeScenarioId, setActiveScenarioId] = useState<string | null>(null);
 
   // Load user profile and streak from IndexedDB (Dexie)
   useEffect(() => {
@@ -88,6 +101,22 @@ export function App() {
       setUser(u);
     });
   }, []);
+
+  // Real curriculum progression loader
+  const refreshCurriculum = useCallback(async () => {
+    try {
+      const progress = await curriculumRepository.getLearnerProgress(user?.id || 'local-learner-1');
+      setCurriculumProgressState(progress);
+      const summary = await curriculumProgressionService.getSummary(user?.id || 'local-learner-1', user?.cefrLevel);
+      setCurriculumSummary(summary);
+    } catch (err) {
+      console.warn('Failed to refresh curriculum progression:', err);
+    }
+  }, [user?.id, user?.cefrLevel]);
+
+  useEffect(() => {
+    refreshCurriculum();
+  }, [refreshCurriculum]);
 
   // Context-aware smart notification checking
   const checkNotifications = useCallback(async () => {
@@ -148,8 +177,10 @@ export function App() {
     activeQuickPickModal ||
     isActivityHubOpen ||
     isPreferencesOpen ||
+    isCurriculumBrowserOpen ||
     activeHubActivity ||
     activeModal.isOpen ||
+    Boolean(activeScenarioId) ||
     searchOpen
   );
 
@@ -196,6 +227,10 @@ export function App() {
   };
 
   const handleLaunchFeatured = (activity: FeaturedActivity) => {
+    if (scenarioSimulationService.getScenarioById(activity.id)) {
+      setActiveScenarioId(activity.id);
+      return;
+    }
     const mapped = getMappedLessonForActivity(activity.id);
     setActiveModal({
       isOpen: true,
@@ -276,6 +311,47 @@ export function App() {
     }
   };
 
+  const handleLaunchPlanItem = async (item: DailyStudyPlanItem) => {
+    if (item.action.type === 'review') {
+      const dueCards = await vocabularyRepository.getDueCards(user?.id || 'local-learner-1');
+      if (dueCards.length > 0) {
+        setReviewCards(dueCards);
+      } else {
+        setActivePracticeStudio('vocabulary');
+      }
+      return;
+    }
+    if (item.action.type === 'lesson') {
+      const lesson = getCurriculumLesson(item.action.targetId);
+      if (lesson) {
+        setActiveLesson(lesson);
+      } else {
+        const mapped = getMappedLessonForActivity(item.action.targetId);
+        setActiveModal({
+          isOpen: true,
+          title: item.title,
+          subtitle: item.subtitle,
+          category: 'Curriculum Lesson',
+          mappedLessonId: mapped?.id || item.action.targetId,
+          description: item.reason,
+        });
+      }
+      return;
+    }
+    if (item.action.type === 'scenario') {
+      setActiveScenarioId(item.action.targetId);
+      return;
+    }
+    if (item.action.type === 'studio') {
+      setActivePracticeStudio(item.action.category || (item.action.targetId as PracticeCategoryKey));
+      return;
+    }
+    if (item.action.type === 'challenge') {
+      setActiveQuickPickModal('challenge');
+      return;
+    }
+  };
+
   const handleCompleteExercise = async () => {
     const updatedStreak = await incrementUserStreak();
     if (user) {
@@ -335,8 +411,15 @@ export function App() {
                 onSeeAll={() => setIsActivityHubOpen(true)}
               />
 
-              {/* A. Continue Learning (Sample progress) */}
+              {/* A. Continue Learning (Real curriculum progression & syllabus gateway) */}
               <ContinueLearningCard
+                unitLabel={curriculumSummary?.currentUnitLabel || 'Unit 2 • Practical Speaking'}
+                lessonTitle="Everyday Conversations"
+                description={curriculumSummary?.nextLesson.description || 'Practice daily conversational English in real-world contexts.'}
+                progressPercent={curriculumSummary?.unitProgressPercent ?? 65}
+                nextLessonTitle={`Next: Lesson ${curriculumSummary?.nextLesson.order || 3} • ${curriculumSummary?.nextLesson.title || 'At the Bus Stop'}`}
+                badgeLabel={curriculumSummary?.unitProgressPercent === 100 ? 'Completed' : 'In Progress'}
+                onSeeAll={() => setIsCurriculumBrowserOpen(true)}
                 onContinue={() => {
                   const mapped = getMappedLessonForActivity('everyday-conversations');
                   setActiveModal({
@@ -344,8 +427,8 @@ export function App() {
                     title: 'Everyday Conversations (Sample Lesson)',
                     subtitle: 'Unit 2 • Practical Speaking • Lesson 3',
                     category: 'Continue Learning',
-                    mappedLessonId: mapped?.id,
-                    description: 'This is a sample learning module demonstrating the curriculum path. In Phase 3, real user progress will be saved automatically with FSRS spaced-repetition memory curves.',
+                    mappedLessonId: mapped?.id || 'a1-u2-l2-everyday-conversations',
+                    description: 'Practice greetings, polite requests, and casual dialogue in natural settings. Continue your structured CEFR learning journey.',
                   });
                 }}
               />
@@ -359,11 +442,23 @@ export function App() {
                 onSelectOption={handleSelectDailyPractice}
                 refreshTrigger={dailyRefreshTrigger}
               />
+
+              {/* Personalized Daily Study Plan (Adaptive Intelligence) */}
+              <TodaysLearningPlan
+                userId={user?.id || 'local-learner-1'}
+                onLaunchItem={handleLaunchPlanItem}
+                refreshTrigger={dailyRefreshTrigger}
+              />
             </>
           ) : activeTab === 'Explore' ? (
-            /* Dedicated Explore Destination */
+            /* Dedicated Explore Destination with Real Syllabus */
             <ExploreScreen
+              onOpenCurriculumBrowser={() => setIsCurriculumBrowserOpen(true)}
               onOpenActivity={(act) => {
+                if (act.id && scenarioSimulationService.getScenarioById(act.id)) {
+                  setActiveScenarioId(act.id);
+                  return;
+                }
                 const mapped = act.id ? getMappedLessonForActivity(act.id) : undefined;
                 setActiveModal({
                   isOpen: true,
@@ -427,6 +522,25 @@ export function App() {
         <SearchModal
           isOpen={searchOpen}
           onClose={() => setSearchOpen(false)}
+          onSelectResult={(result: CurriculumSearchResult) => {
+            if (result.type === 'lesson' && result.lessonId) {
+              const lesson = getCurriculumLesson(result.lessonId);
+              if (lesson) {
+                setActiveLesson(lesson);
+                return;
+              }
+            }
+            if (result.type === 'studio' && result.studioKey) {
+              setActivePracticeStudio(result.studioKey);
+              return;
+            }
+            setActiveModal({
+              isOpen: true,
+              title: result.title,
+              category: result.category,
+              description: result.subtitle,
+            });
+          }}
           onSelectTopic={(topic) => {
             setActiveModal({
               isOpen: true,
@@ -448,6 +562,7 @@ export function App() {
               if (user) {
                 setUser({ ...user, currentStreak: updatedStreak });
               }
+              await refreshCurriculum();
             }}
           />
         )}
@@ -587,6 +702,33 @@ export function App() {
             setIsActivityHubOpen(false);
             setActivePracticeStudio('interview');
           }}
+        />
+
+        {/* Interactive Multi-turn Scenario Roleplay Modal */}
+        <InteractiveScenarioModal
+          isOpen={Boolean(activeScenarioId)}
+          scenarioId={activeScenarioId}
+          userId={user?.id || 'local-learner-1'}
+          onClose={() => setActiveScenarioId(null)}
+          onStartLesson={(lessonId) => {
+            const lesson = getCurriculumLesson(lessonId);
+            if (lesson) {
+              setActiveScenarioId(null);
+              setActiveLesson(lesson);
+            }
+          }}
+          onSessionComplete={() => {
+            refreshCurriculum();
+          }}
+        />
+
+        {/* Interactive CEFR Curriculum Roadmap & Course Browser */}
+        <CurriculumBrowserModal
+          isOpen={isCurriculumBrowserOpen}
+          userProgress={curriculumProgressState}
+          initialLevel={user?.cefrLevel || 'A1'}
+          onClose={() => setIsCurriculumBrowserOpen(false)}
+          onSelectLesson={(lesson) => setActiveLesson(lesson)}
         />
 
         {/* Smart In-App Notification Toast */}
