@@ -14,77 +14,21 @@ import {
   EyeOff, 
   Award, 
   MessageSquare,
-  FileText
+  FileText,
+  VolumeX,
+  Sparkles,
+  Info
 } from 'lucide-react';
 import type { PracticeDifficulty, PracticeSessionLength } from '../../types/practicePreferences';
 import { SESSION_LENGTH_MINUTES } from '../../types/practicePreferences';
 import { practiceRepository } from '../../db/practiceRepository';
 import { dailyPracticeService, getLocalDateString } from '../../services/dailyPracticeService';
+import { LISTENING_SCENARIOS, type ListeningScenario } from '../../data/listeningData';
+import { useModalFocusTrap } from '../../hooks/useModalFocusTrap';
+
+export { LISTENING_SCENARIOS, type ListeningScenario };
 
 export type ListeningStudioMode = 'comprehension' | 'dictation' | 'retell' | 'voice_ai';
-
-export interface ListeningScenario {
-  id: string;
-  title: string;
-  scenario: string;
-  level: string;
-  accent: 'en-US' | 'en-GB' | 'en-AU';
-  dialogueText: string;
-  question: string;
-  options: string[];
-  correctIndex: number;
-  explanation: string;
-  keyPhrases: string[];
-  dictationSentence: string;
-}
-
-export const LISTENING_SCENARIOS: ListeningScenario[] = [
-  {
-    id: 'train-platform',
-    title: 'Train Platform Announcement',
-    scenario: 'Train Platform Announcement',
-    level: 'A2 • Practical Travel',
-    accent: 'en-GB',
-    dialogueText:
-      "Attention passengers on Platform 3. The 10:45 express train to Oxford has been delayed by approximately 15 minutes due to routine signal maintenance. Please keep your luggage with you at all times.",
-    question: 'How long is the train delayed?',
-    options: ['5 minutes', '15 minutes', '45 minutes'],
-    correctIndex: 1,
-    explanation: "The announcer stated that the 10:45 train is delayed by 'approximately 15 minutes'.",
-    keyPhrases: ['Attention passengers', 'delayed by approximately', 'routine maintenance', 'Platform 3'],
-    dictationSentence: 'The express train to Oxford has been delayed by 15 minutes.',
-  },
-  {
-    id: 'cafe-order',
-    title: 'Ordering at a London Bakery',
-    scenario: 'London Bakery Counter',
-    level: 'A1 • Everyday Conversation',
-    accent: 'en-GB',
-    dialogueText:
-      "Good morning! Would you like that croissant warmed up, and would that be whole milk or oat milk with your flat white today?",
-    question: 'What beverage is the customer ordering?',
-    options: ['A cup of Earl Grey tea', 'An iced americano', 'A flat white coffee'],
-    correctIndex: 2,
-    explanation: "The barista asks whether the customer prefers whole milk or oat milk with their flat white.",
-    keyPhrases: ['Good morning', 'warmed up', 'flat white', 'oat milk'],
-    dictationSentence: 'Would that be whole milk or oat milk with your coffee?',
-  },
-  {
-    id: 'flight-gate-change',
-    title: 'Airport Gate & Boarding Update',
-    scenario: 'International Airport Terminal',
-    level: 'B1 • Travel Navigation',
-    accent: 'en-US',
-    dialogueText:
-      "Ladies and gentlemen, flight 402 with non-stop service to Seattle will now board from Gate B12 instead of Gate B4. Boarding will commence in approximately ten minutes for passengers requiring special assistance.",
-    question: 'Which gate is flight 402 now boarding from?',
-    options: ['Gate B4', 'Gate B12', 'Gate B10'],
-    correctIndex: 1,
-    explanation: "The gate has changed from B4 to Gate B12.",
-    keyPhrases: ['non-stop service', 'board from Gate B12', 'commence in ten minutes'],
-    dictationSentence: 'Flight 402 with non-stop service will board from Gate B12.',
-  },
-];
 
 interface ListeningVoiceStudioModalProps {
   userId?: string;
@@ -101,6 +45,18 @@ export const ListeningVoiceStudioModal: React.FC<ListeningVoiceStudioModalProps>
   onClose,
   onNavigateToExplore: _onNavigateToExplore,
 }) => {
+  const handleSafeClose = () => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    onClose();
+  };
+
+  const modalRef = useModalFocusTrap<HTMLDivElement>({
+    isOpen: true,
+    onClose: handleSafeClose,
+  });
+
   const [sessionDifficulty, setSessionDifficulty] = useState<PracticeDifficulty>(initialDifficulty);
   const [sessionLength, setSessionLength] = useState<PracticeSessionLength>(initialSessionLength);
   const [activeMode, setActiveMode] = useState<ListeningStudioMode>('comprehension');
@@ -108,14 +64,19 @@ export const ListeningVoiceStudioModal: React.FC<ListeningVoiceStudioModalProps>
 
   // Audio Playback
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [playingPhraseId, setPlayingPhraseId] = useState<string | null>(null);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(
     initialDifficulty === 'easy' ? 0.8 : initialDifficulty === 'hard' ? 1.15 : 1.0
   );
   const [showTranscript, setShowTranscript] = useState(false);
+  const [isTtsSupported, setIsTtsSupported] = useState(true);
 
-  // Comprehension Drill State
+  // Comprehension Drill State (Multiple Choice vs Short Answer)
+  const [questionType, setQuestionType] = useState<'multiple_choice' | 'short_answer'>('multiple_choice');
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [isAnswerChecked, setIsAnswerChecked] = useState(false);
+  const [shortAnswerInput, setShortAnswerInput] = useState('');
+  const [shortAnswerResult, setShortAnswerResult] = useState<{ isCorrect: boolean; feedback: string } | null>(null);
 
   // Dictation State
   const [dictationInput, setDictationInput] = useState('');
@@ -125,6 +86,7 @@ export const ListeningVoiceStudioModal: React.FC<ListeningVoiceStudioModalProps>
   const [isRecordingMic, setIsRecordingMic] = useState(false);
   const [voiceTranscript, setVoiceTranscript] = useState<string | null>(null);
   const [voiceCoachReply, setVoiceCoachReply] = useState<string | null>(null);
+  const [micError, setMicError] = useState<string | null>(null);
 
   // Session Results
   const [correctCount, setCorrectCount] = useState(0);
@@ -134,8 +96,11 @@ export const ListeningVoiceStudioModal: React.FC<ListeningVoiceStudioModalProps>
   const scenario = LISTENING_SCENARIOS[selectedScenarioIndex] || LISTENING_SCENARIOS[0];
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsTtsSupported('speechSynthesis' in window);
+    }
     return () => {
-      if ('speechSynthesis' in window) {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
         window.speechSynthesis.cancel();
       }
     };
@@ -147,27 +112,70 @@ export const ListeningVoiceStudioModal: React.FC<ListeningVoiceStudioModalProps>
     setPlaybackSpeed(speed);
   };
 
-  const handlePlayAudio = (textToPlay: string = scenario.dialogueText) => {
-    if ('speechSynthesis' in window) {
+  const handlePlayAudio = (textToPlay: string = scenario.dialogueText, phraseId?: string) => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       if (isPlayingAudio) {
         window.speechSynthesis.cancel();
         setIsPlayingAudio(false);
-        return;
+        setPlayingPhraseId(null);
+        if (phraseId && playingPhraseId === phraseId) {
+          return;
+        }
       }
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(textToPlay);
       utterance.lang = scenario.accent || 'en-US';
       utterance.rate = playbackSpeed;
-      utterance.onend = () => setIsPlayingAudio(false);
-      utterance.onerror = () => setIsPlayingAudio(false);
+      utterance.onend = () => {
+        setIsPlayingAudio(false);
+        setPlayingPhraseId(null);
+      };
+      utterance.onerror = () => {
+        setIsPlayingAudio(false);
+        setPlayingPhraseId(null);
+      };
       setIsPlayingAudio(true);
+      if (phraseId) setPlayingPhraseId(phraseId);
       window.speechSynthesis.speak(utterance);
+    } else {
+      setIsTtsSupported(false);
     }
+  };
+
+  const handleReplayFullAudio = () => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      setIsPlayingAudio(false);
+      setPlayingPhraseId(null);
+    }
+    handlePlayAudio(scenario.dialogueText);
   };
 
   const handleCheckAnswer = () => {
     setIsAnswerChecked(true);
     const isCorrect = selectedOption === scenario.correctIndex;
+    if (isCorrect) {
+      setCorrectCount((prev) => prev + 1);
+    } else {
+      setErrorCount((prev) => prev + 1);
+    }
+  };
+
+  const handleCheckShortAnswer = () => {
+    if (!scenario.shortAnswer || !shortAnswerInput.trim()) return;
+    const cleanInput = shortAnswerInput.toLowerCase().trim().replace(/[^a-z0-9\s]/g, '');
+    const isCorrect = scenario.shortAnswer.acceptedAnswers.some((ans) => {
+      const cleanAns = ans.toLowerCase().trim().replace(/[^a-z0-9\s]/g, '');
+      return cleanInput.includes(cleanAns) || cleanAns.includes(cleanInput);
+    });
+
+    setShortAnswerResult({
+      isCorrect,
+      feedback: isCorrect
+        ? `Correct! ${scenario.shortAnswer.explanation}`
+        : `Not quite. Sample answer: "${scenario.shortAnswer.sampleAnswer}". ${scenario.shortAnswer.explanation}`,
+    });
+
     if (isCorrect) {
       setCorrectCount((prev) => prev + 1);
     } else {
@@ -197,8 +205,11 @@ export const ListeningVoiceStudioModal: React.FC<ListeningVoiceStudioModalProps>
 
   // Mic Speech Recognition
   const handleToggleMic = () => {
+    setMicError(null);
     const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      typeof window !== 'undefined'
+        ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+        : null;
 
     if (!SpeechRecognition) {
       // Graceful text simulation fallback
@@ -222,13 +233,14 @@ export const ListeningVoiceStudioModal: React.FC<ListeningVoiceStudioModalProps>
         const transcript = event.results[0][0].transcript;
         setVoiceTranscript(transcript);
         setIsRecordingMic(false);
-        setVoiceCoachReply("Well done! Your summary was natural and captured the train destination and delay time accurately.");
+        setVoiceCoachReply("Well done! Your summary was natural and captured the core details accurately.");
         setCorrectCount((prev) => prev + 1);
       };
       recognition.onerror = () => {
         setIsRecordingMic(false);
         setVoiceTranscript("The train to Oxford is delayed by 15 minutes.");
         setVoiceCoachReply("Great job! Your spoken retelling clearly conveyed the core details.");
+        setCorrectCount((prev) => prev + 1);
       };
       recognition.onend = () => setIsRecordingMic(false);
       recognition.start();
@@ -242,11 +254,14 @@ export const ListeningVoiceStudioModal: React.FC<ListeningVoiceStudioModalProps>
       setSelectedScenarioIndex((prev) => prev + 1);
       setSelectedOption(null);
       setIsAnswerChecked(false);
+      setShortAnswerInput('');
+      setShortAnswerResult(null);
       setDictationInput('');
       setDictationScore(null);
       setVoiceTranscript(null);
       setVoiceCoachReply(null);
       setShowTranscript(false);
+      setPlayingPhraseId(null);
     } else {
       finishListeningSession();
     }
@@ -267,7 +282,7 @@ export const ListeningVoiceStudioModal: React.FC<ListeningVoiceStudioModalProps>
         sessionLength,
         durationMinutes: SESSION_LENGTH_MINUTES[sessionLength],
         score: scorePercent,
-        notes: `Daily Listening Studio completed. Scenario: ${scenario.title}. Accuracy: ${scorePercent}%. Speed: ${playbackSpeed}x.`,
+        notes: `Daily Listening Studio completed. Scenario: ${scenario.title}. Accuracy: ${scorePercent}%. Speed: ${playbackSpeed}x. CEFR: ${scenario.cefrLevel}.`,
       });
       await dailyPracticeService.recordDailyCompletion(userId, 'listening', scorePercent);
     } catch (err) {
@@ -277,12 +292,13 @@ export const ListeningVoiceStudioModal: React.FC<ListeningVoiceStudioModalProps>
 
   return (
     <div
+      ref={modalRef}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto"
       role="dialog"
       aria-modal="true"
       aria-labelledby="listening-modal-title"
     >
-      <div className="relative w-full max-w-[580px] bg-white rounded-3xl shadow-2xl border border-[#D5D8EE] flex flex-col max-h-[92vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-[620px] bg-white rounded-3xl shadow-2xl border border-[#D5D8EE] flex flex-col max-h-[92vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         
         {/* Studio Header */}
         <header className="p-4 bg-white border-b border-[#ECEEFE] flex items-center justify-between shrink-0">
@@ -291,21 +307,23 @@ export const ListeningVoiceStudioModal: React.FC<ListeningVoiceStudioModalProps>
               <Headphones className="w-5 h-5 stroke-[2.4]" />
             </div>
             <div>
-              <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#7C3AED]">
-                Listening Studio
-              </span>
-              <h1 id="listening-modal-title" className="text-[15px] font-black text-[#1C2046] leading-none">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#7C3AED]">
+                  Listening Comprehension Studio
+                </span>
+                <span className="text-[9.5px] font-bold text-[#545CA6] bg-[#ECEFFD] px-1.5 py-0.2 rounded-full">
+                  {scenario.cefrLevel}
+                </span>
+              </div>
+              <h1 id="listening-modal-title" className="text-[15px] font-black text-[#1C2046] leading-none mt-0.5">
                 Ear Training & Comprehension
               </h1>
             </div>
           </div>
           <button
             type="button"
-            onClick={() => {
-              if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-              onClose();
-            }}
-            className="w-8 h-8 rounded-full bg-[#F4F5FD] hover:bg-[#E8EBFB] text-[#222149] flex items-center justify-center transition-colors cursor-pointer"
+            onClick={handleSafeClose}
+            className="min-w-[44px] min-h-[44px] rounded-full bg-[#F4F5FD] hover:bg-[#E8EBFB] text-[#15164B] flex items-center justify-center transition-colors cursor-pointer"
             aria-label="Close listening studio"
           >
             <X className="w-4.5 h-4.5 stroke-[2.2]" />
@@ -324,7 +342,7 @@ export const ListeningVoiceStudioModal: React.FC<ListeningVoiceStudioModalProps>
                 className={`px-2 py-0.5 rounded-md font-extrabold capitalize transition-all cursor-pointer text-[10.5px] ${
                   sessionDifficulty === lvl
                     ? 'bg-[#15164B] text-white shadow-xs'
-                    : 'bg-white text-[#6B7094] border border-[#ECEEFE] hover:bg-[#F9F9FE]'
+                    : 'bg-white text-[#484E77] border border-[#ECEEFE] hover:bg-[#F9F9FE]'
                 }`}
               >
                 {lvl}
@@ -333,14 +351,16 @@ export const ListeningVoiceStudioModal: React.FC<ListeningVoiceStudioModalProps>
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 text-[10px] font-bold text-[#6B7094]">
+            <div className="flex items-center gap-1 text-[10px] font-bold text-[#484E77]">
               <span>Speed:</span>
               {[0.8, 1.0, 1.2].map((spd) => (
                 <button
                   key={spd}
                   type="button"
                   onClick={() => setPlaybackSpeed(spd)}
-                  className={`px-1.5 py-0.5 rounded text-[10px] font-extrabold cursor-pointer ${
+                  aria-label={`Set playback speed to ${spd}x`}
+                  aria-pressed={playbackSpeed === spd}
+                  className={`px-2 py-1 rounded text-[10.5px] font-extrabold cursor-pointer transition-colors ${
                     playbackSpeed === spd
                       ? 'bg-[#545CA6] text-white'
                       : 'bg-white text-[#52577F] border border-[#ECEEFE]'
@@ -411,51 +431,84 @@ export const ListeningVoiceStudioModal: React.FC<ListeningVoiceStudioModalProps>
                         setSelectedScenarioIndex(i);
                         setSelectedOption(null);
                         setIsAnswerChecked(false);
+                        setShortAnswerInput('');
+                        setShortAnswerResult(null);
                         setShowTranscript(false);
+                        setPlayingPhraseId(null);
                       }}
-                      className={`px-3 py-1 rounded-full text-[11.5px] font-bold whitespace-nowrap transition-all cursor-pointer ${
+                      className={`px-2.5 py-1 rounded-full text-[11px] font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1 ${
                         selectedScenarioIndex === i
                           ? 'bg-[#15164B] text-white shadow-xs'
                           : 'bg-white text-[#6B7094] border border-[#ECEEFE] hover:bg-[#F9F9FE]'
                       }`}
                     >
-                      {sc.title}
+                      <span>{sc.title}</span>
+                      <span className={`text-[9px] px-1 rounded-sm ${selectedScenarioIndex === i ? 'bg-white/20 text-white' : 'bg-[#ECEFFD] text-[#545CA6]'}`}>
+                        {sc.cefrLevel}
+                      </span>
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Audio Player Card (Dark Indigo Aesthetic) */}
+              {/* Synthetic Audio Disclosure & Fallback Alert */}
+              {!isTtsSupported && (
+                <div className="p-3 rounded-2xl bg-[#FFFBEB] border border-[#FEF3C7] text-[11.5px] text-[#92400E] flex items-center gap-2">
+                  <Info className="w-4 h-4 shrink-0" />
+                  <span>Speech synthesis not available in this browser. Please read the transcript below to practice.</span>
+                </div>
+              )}
+
+              {/* Audio Player Card (Dark Indigo Gradient) */}
               <div className="p-5 rounded-3xl bg-gradient-to-br from-[#1E224E] to-[#2B316D] text-white shadow-lg space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/15 text-white">
-                    {scenario.level}
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/15 text-white">
+                      {scenario.level}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-medium bg-white/10 text-[#C4CAEE]">
+                      Synthesized English Audio
+                    </span>
+                  </div>
                   <span className="text-[12px] font-extrabold text-[#C4CAEE]">
                     {scenario.scenario}
                   </span>
                 </div>
 
-                <div className="flex items-center justify-center py-2">
+                <div className="flex items-center justify-center gap-4 py-2">
+                  <button
+                    type="button"
+                    onClick={handleReplayFullAudio}
+                    title="Restart from beginning"
+                    className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer"
+                    aria-label="Restart from beginning"
+                  >
+                    <RotateCw className="w-4 h-4" />
+                  </button>
+
                   <button
                     type="button"
                     onClick={() => handlePlayAudio(scenario.dialogueText)}
                     className="w-16 h-16 rounded-full bg-white text-[#15164B] hover:scale-105 active:scale-95 flex items-center justify-center transition-all shadow-xl cursor-pointer"
                     aria-label="Play audio"
                   >
-                    {isPlayingAudio ? (
+                    {isPlayingAudio && !playingPhraseId ? (
                       <Pause className="w-7 h-7 fill-current stroke-none" />
                     ) : (
                       <Play className="w-7 h-7 fill-current stroke-none ml-1" />
                     )}
                   </button>
+
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-white/50 text-[11px] font-bold">
+                    {scenario.accent}
+                  </div>
                 </div>
 
                 {/* Audio Waveform simulation & Speed info */}
                 <div className="flex items-center justify-between text-[11px] text-white/70 pt-1 border-t border-white/10">
                   <div className="flex items-center gap-1.5">
                     <Volume2 className="w-4 h-4 text-[#A5B4FC]" />
-                    <span>Native Pace ({playbackSpeed}x)</span>
+                    <span>Playback Speed ({playbackSpeed}x)</span>
                   </div>
                   <button
                     type="button"
@@ -475,6 +528,52 @@ export const ListeningVoiceStudioModal: React.FC<ListeningVoiceStudioModalProps>
                 )}
               </div>
 
+              {/* Phrase-by-Phrase Playback Breakdown */}
+              {scenario.phrases && scenario.phrases.length > 0 && (
+                <div className="p-3.5 rounded-2xl bg-[#FAF9FE] border border-[#ECEEFE] space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10.5px] font-extrabold uppercase tracking-wider text-[#6B7094] flex items-center gap-1">
+                      <Sparkles className="w-3 h-3 text-[#7C3AED]" />
+                      <span>Phrase-by-Phrase Playback ({scenario.phrases.length})</span>
+                    </span>
+                    <span className="text-[10px] text-[#8E93B8]">Click phrase to listen</span>
+                  </div>
+                  <div className="space-y-1.5">
+                    {scenario.phrases.map((phrase) => {
+                      const isThisPlaying = isPlayingAudio && playingPhraseId === phrase.id;
+                      return (
+                        <button
+                          key={phrase.id}
+                          type="button"
+                          onClick={() => handlePlayAudio(phrase.text, phrase.id)}
+                          aria-label={`Listen to phrase ${phrase.id}`}
+                          className={`w-full text-left p-2.5 rounded-xl border text-[12px] flex items-center justify-between gap-2 transition-all cursor-pointer ${
+                            isThisPlaying
+                              ? 'bg-[#F5F3FF] border-[#7C3AED] text-[#6D28D9]'
+                              : 'bg-white border-[#ECEEFE] hover:bg-[#F9F9FE] text-[#1E224E]'
+                          }`}
+                        >
+                          <div className="min-w-0">
+                            {phrase.speaker && (
+                              <span className="text-[9.5px] font-extrabold uppercase text-[#7C3AED] block leading-none mb-0.5">
+                                {phrase.speaker}
+                              </span>
+                            )}
+                            <p className="font-medium text-[#1E224E] truncate">"{phrase.text}"</p>
+                            {phrase.cueNote && (
+                              <span className="text-[10px] text-[#8E93B8] block">{phrase.cueNote}</span>
+                            )}
+                          </div>
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${isThisPlaying ? 'bg-[#7C3AED] text-white' : 'bg-[#F0F2FD] text-[#545CA6]'}`}>
+                            {isThisPlaying ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3 ml-0.5" />}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* MODE 1: COMPREHENSION CHECK */}
               {activeMode === 'comprehension' && (
                 <div className="p-4 rounded-3xl bg-white border border-[#ECEEFE] shadow-xs space-y-3">
@@ -482,61 +581,118 @@ export const ListeningVoiceStudioModal: React.FC<ListeningVoiceStudioModalProps>
                     <h3 className="text-[14px] font-extrabold text-[#15164B]">
                       Comprehension Check:
                     </h3>
-                    <span className="text-[10px] font-bold text-[#8E93B8] uppercase">
-                      Question
-                    </span>
-                  </div>
-
-                  <p className="text-[13.5px] font-bold text-[#1C2046]">
-                    {scenario.question}
-                  </p>
-
-                  <div className="space-y-2">
-                    {scenario.options.map((opt, i) => {
-                      const isSelected = selectedOption === i;
-                      const isCorrect = i === scenario.correctIndex;
-                      let btnStyle = 'bg-white border-[#E0E4FC] text-[#222149] hover:bg-[#F9F9FE]';
-
-                      if (isAnswerChecked) {
-                        if (isCorrect) {
-                          btnStyle = 'bg-[#ECFDF5] border-[#10B981] text-[#065F46] font-bold';
-                        } else if (isSelected && !isCorrect) {
-                          btnStyle = 'bg-[#FEF2F2] border-[#EF4444] text-[#991B1B]';
-                        }
-                      } else if (isSelected) {
-                        btnStyle = 'bg-[#ECEFFD] border-[#545CA6] text-[#15164B] font-bold';
-                      }
-
-                      return (
+                    {scenario.shortAnswer && (
+                      <div className="flex items-center gap-1 bg-[#F4F5FB] p-0.5 rounded-lg text-[10px] font-extrabold">
                         <button
-                          key={i}
                           type="button"
-                          disabled={isAnswerChecked}
-                          onClick={() => setSelectedOption(i)}
-                          className={`w-full text-left p-3 rounded-2xl border text-[13px] transition-all cursor-pointer flex items-center justify-between ${btnStyle}`}
+                          onClick={() => setQuestionType('multiple_choice')}
+                          className={`px-2 py-0.5 rounded-md cursor-pointer ${questionType === 'multiple_choice' ? 'bg-white text-[#15164B] shadow-xs' : 'text-[#6B7094]'}`}
                         >
-                          <span>{opt}</span>
-                          {isAnswerChecked && isCorrect && <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />}
-                          {isAnswerChecked && isSelected && !isCorrect && <XCircle className="w-4 h-4 text-[#EF4444] shrink-0" />}
+                          Multiple Choice
                         </button>
-                      );
-                    })}
+                        <button
+                          type="button"
+                          onClick={() => setQuestionType('short_answer')}
+                          className={`px-2 py-0.5 rounded-md cursor-pointer ${questionType === 'short_answer' ? 'bg-white text-[#15164B] shadow-xs' : 'text-[#6B7094]'}`}
+                        >
+                          Short Answer
+                        </button>
+                      </div>
+                    )}
                   </div>
 
-                  {!isAnswerChecked ? (
-                    <button
-                      type="button"
-                      disabled={selectedOption === null}
-                      onClick={handleCheckAnswer}
-                      className="w-full py-2.5 rounded-full bg-[#15164B] hover:bg-[#0E1038] disabled:opacity-40 text-white text-[12.5px] font-bold transition-all cursor-pointer shadow-xs"
-                    >
-                      Check Answer
-                    </button>
+                  {questionType === 'multiple_choice' ? (
+                    <>
+                      <p className="text-[13.5px] font-bold text-[#1C2046]">
+                        {scenario.question}
+                      </p>
+
+                      <div className="space-y-2">
+                        {scenario.options.map((opt, i) => {
+                          const isSelected = selectedOption === i;
+                          const isCorrect = i === scenario.correctIndex;
+                          let btnStyle = 'bg-white border-[#E0E4FC] text-[#222149] hover:bg-[#F9F9FE]';
+
+                          if (isAnswerChecked) {
+                            if (isCorrect) {
+                              btnStyle = 'bg-[#ECFDF5] border-[#10B981] text-[#065F46] font-bold';
+                            } else if (isSelected && !isCorrect) {
+                              btnStyle = 'bg-[#FEF2F2] border-[#EF4444] text-[#991B1B]';
+                            }
+                          } else if (isSelected) {
+                            btnStyle = 'bg-[#ECEFFD] border-[#545CA6] text-[#15164B] font-bold';
+                          }
+
+                          return (
+                            <button
+                              key={i}
+                              type="button"
+                              disabled={isAnswerChecked}
+                              onClick={() => setSelectedOption(i)}
+                              className={`w-full text-left p-3 rounded-2xl border text-[13px] transition-all cursor-pointer flex items-center justify-between ${btnStyle}`}
+                            >
+                              <span>{opt}</span>
+                              {isAnswerChecked && isCorrect && <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />}
+                              {isAnswerChecked && isSelected && !isCorrect && <XCircle className="w-4 h-4 text-[#EF4444] shrink-0" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {!isAnswerChecked ? (
+                        <button
+                          type="button"
+                          disabled={selectedOption === null}
+                          onClick={handleCheckAnswer}
+                          className="w-full py-2.5 rounded-full bg-[#15164B] hover:bg-[#0E1038] disabled:opacity-40 text-white text-[12.5px] font-bold transition-all cursor-pointer shadow-xs"
+                        >
+                          Check Answer
+                        </button>
+                      ) : (
+                        <div className="p-3 rounded-2xl bg-[#F4F5FD] border border-[#DEE3FA] text-[12px] space-y-1 animate-in fade-in duration-150">
+                          <span className="font-extrabold text-[#15164B] block">Audio Explanation:</span>
+                          <p className="text-[#52577F]">{scenario.explanation}</p>
+                        </div>
+                      )}
+                    </>
                   ) : (
-                    <div className="p-3 rounded-2xl bg-[#F4F5FD] border border-[#DEE3FA] text-[12px] space-y-1 animate-in fade-in duration-150">
-                      <span className="font-extrabold text-[#15164B] block">Audio Explanation:</span>
-                      <p className="text-[#52577F]">{scenario.explanation}</p>
-                    </div>
+                    /* Short Answer Question */
+                    scenario.shortAnswer && (
+                      <div className="space-y-2.5">
+                        <p className="text-[13.5px] font-bold text-[#1C2046]">
+                          {scenario.shortAnswer.question}
+                        </p>
+                        <input
+                          type="text"
+                          value={shortAnswerInput}
+                          onChange={(e) => setShortAnswerInput(e.target.value)}
+                          placeholder="Type your brief answer..."
+                          className="w-full p-3 rounded-2xl border border-[#D5D8EE] text-[13px] text-[#15164B] focus:border-[#545CA6] outline-hidden shadow-xs"
+                        />
+                        {!shortAnswerResult ? (
+                          <button
+                            type="button"
+                            onClick={handleCheckShortAnswer}
+                            disabled={!shortAnswerInput.trim()}
+                            className="w-full py-2.5 rounded-full bg-[#15164B] hover:bg-[#0E1038] disabled:opacity-40 text-white text-[12.5px] font-bold transition-all cursor-pointer shadow-xs"
+                          >
+                            Submit Answer
+                          </button>
+                        ) : (
+                          <div className={`p-3.5 rounded-2xl border text-[12px] space-y-1 animate-in fade-in duration-150 ${
+                            shortAnswerResult.isCorrect
+                              ? 'bg-[#ECFDF5] border-[#A7F3D0] text-[#065F46]'
+                              : 'bg-[#FEF2F2] border-[#FECACA] text-[#991B1B]'
+                          }`}>
+                            <div className="flex items-center gap-1.5 font-bold">
+                              {shortAnswerResult.isCorrect ? <CheckCircle2 className="w-4 h-4 text-[#10B981]" /> : <XCircle className="w-4 h-4 text-[#EF4444]" />}
+                              <span>{shortAnswerResult.isCorrect ? 'Correct!' : 'Incorrect'}</span>
+                            </div>
+                            <p className="text-[11.5px]">{shortAnswerResult.feedback}</p>
+                          </div>
+                        )}
+                      </div>
+                    )
                   )}
                 </div>
               )}
@@ -600,6 +756,13 @@ export const ListeningVoiceStudioModal: React.FC<ListeningVoiceStudioModalProps>
                       Voice Recognition
                     </span>
                   </div>
+
+                  {micError && (
+                    <div className="p-3 rounded-2xl bg-[#FEF2F2] border border-[#FECACA] text-[11.5px] text-[#991B1B] flex items-center gap-2">
+                      <VolumeX className="w-4 h-4 shrink-0" />
+                      <span>{micError}</span>
+                    </div>
+                  )}
 
                   <div className="text-center py-3 space-y-2">
                     <button
@@ -730,6 +893,8 @@ export const ListeningVoiceStudioModal: React.FC<ListeningVoiceStudioModalProps>
                   setSelectedScenarioIndex(0);
                   setSelectedOption(null);
                   setIsAnswerChecked(false);
+                  setShortAnswerInput('');
+                  setShortAnswerResult(null);
                   setCorrectCount(0);
                   setErrorCount(0);
                 }}
