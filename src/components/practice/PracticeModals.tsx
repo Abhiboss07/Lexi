@@ -9,6 +9,7 @@ import { VocabularyStudioModal } from './VocabularyStudioModal';
 import { GrammarStudioModal } from './GrammarStudioModal';
 import { ListeningVoiceStudioModal } from './ListeningVoiceStudioModal';
 import { InterviewTrainerModal } from './InterviewTrainerModal';
+import { SpeakingPracticeModal } from './SpeakingPracticeModal';
 
 interface PracticeModalProps {
   category: PracticeCategoryKey | null;
@@ -78,6 +79,16 @@ export const PracticeModal: React.FC<PracticeModalProps> = ({
           initialSessionLength={initialSessionLength}
           onClose={onClose} 
           onNavigateToExplore={onNavigateToExplore} 
+        />
+      );
+    case 'speaking':
+      return (
+        <SpeakingPracticeModal
+          userId={userId}
+          initialDifficulty={initialDifficulty}
+          initialSessionLength={initialSessionLength}
+          onClose={onClose}
+          onNavigateToExplore={onNavigateToExplore}
         />
       );
     case 'interview':

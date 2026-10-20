@@ -1,7 +1,7 @@
 import type { CEFRLevel } from './curriculum';
 import type { UserProfile } from './index';
 import type { CurriculumProgressionState } from './curriculum';
-import type { VocabularyCardRecord } from './vocabulary';
+import type { VocabularyCardRecord, ReviewLogRecord } from './vocabulary';
 import type { PracticePreferences, PracticeSessionRecord } from './practicePreferences';
 import {
   QuickNote,
@@ -12,6 +12,9 @@ import {
   BookmarkedIdiomRecord,
 } from './quickPicks';
 import type { DailyStudyPlanRecord } from './adaptivePlan';
+import type { LearnerMistakeRecord } from './conversationCoach';
+import type { AssessmentResult } from './assessment';
+import type { NotificationEventRecord } from './notifications';
 
 export type BadgeTier = 'bronze' | 'silver' | 'gold' | 'diamond';
 
@@ -44,6 +47,8 @@ export interface CEFRCertificate {
   vocabularyMastered: number;
   accuracyScore: number;
   skillsCertified: string[];
+  disclaimer?: string;
+  isInternalMilestone?: boolean;
 }
 
 export interface LearnerAchievementSummary {
@@ -56,8 +61,10 @@ export interface LearnerAchievementSummary {
   certificates: CEFRCertificate[];
 }
 
+export type LexiBackupVersion = 'lexi-backup-v1' | 'lexi-backup-v2';
+
 export interface LexiBackupPayload {
-  version: 'lexi-backup-v1';
+  version: LexiBackupVersion;
   exportedAt: string;
   appName: string;
   userId: string;
@@ -66,6 +73,7 @@ export interface LexiBackupPayload {
     preferences?: PracticePreferences;
     curriculumProgress?: CurriculumProgressionState;
     vocabularyCards?: VocabularyCardRecord[];
+    reviewLogs?: ReviewLogRecord[];
     practiceSessions?: PracticeSessionRecord[];
     quickNotes?: QuickNote[];
     savedDrawings?: SavedDrawing[];
@@ -74,7 +82,14 @@ export interface LexiBackupPayload {
     activityCompletions?: ActivityCompletionRecord[];
     bookmarkedIdioms?: BookmarkedIdiomRecord[];
     dailyStudyPlans?: DailyStudyPlanRecord[];
+    mistakeRecords?: LearnerMistakeRecord[];
+    assessmentRecords?: AssessmentResult[];
+    notificationEvents?: NotificationEventRecord[];
   };
+}
+
+export interface BackupImportOptions {
+  mode?: 'replace' | 'merge';
 }
 
 export interface BackupImportResult {

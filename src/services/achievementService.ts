@@ -2,8 +2,6 @@ import type {
   AchievementBadge,
   CEFRCertificate,
   LearnerAchievementSummary,
-  LexiBackupPayload,
-  BackupImportResult,
   UserProfile,
   CurriculumProgressionState,
   VocabularyStats,
@@ -11,7 +9,6 @@ import type {
   ActivityCompletionRecord,
   CEFRLevel,
 } from '../types';
-import { db } from '../db';
 
 export interface AchievementEvaluationInput {
   user?: UserProfile | null;
@@ -315,6 +312,8 @@ export function calculateAchievements(input: AchievementEvaluationInput): Learne
       hoursPracticed: Math.max(hoursPracticed, 12.5),
       vocabularyMastered: Math.max(masteredCards, 85),
       accuracyScore: Math.max(avgScore, 90),
+      isInternalMilestone: true,
+      disclaimer: 'Lexi Internal Curriculum Milestone — Verifies completion and demonstrated mastery of Lexi’s CEFR-aligned syllabus. An internal learning milestone, not an accredited examination diploma (IELTS/TOEFL/Cambridge).',
       skillsCertified: [
         'Everyday greetings and basic introductions',
         'Ordering food & drinks in social settings',
@@ -333,6 +332,8 @@ export function calculateAchievements(input: AchievementEvaluationInput): Learne
       hoursPracticed: Math.max(hoursPracticed, 24.0),
       vocabularyMastered: Math.max(masteredCards, 160),
       accuracyScore: Math.max(avgScore, 88),
+      isInternalMilestone: true,
+      disclaimer: 'Lexi Internal Curriculum Milestone — Verifies completion and demonstrated mastery of Lexi’s CEFR-aligned syllabus. An internal learning milestone, not an accredited examination diploma (IELTS/TOEFL/Cambridge).',
       skillsCertified: [
         'Describing past experiences and travel',
         'Expressing opinions and making polite requests',
@@ -351,6 +352,8 @@ export function calculateAchievements(input: AchievementEvaluationInput): Learne
       hoursPracticed: Math.max(hoursPracticed, 48.0),
       vocabularyMastered: Math.max(masteredCards, 350),
       accuracyScore: Math.max(avgScore, 85),
+      isInternalMilestone: true,
+      disclaimer: 'Lexi Internal Curriculum Milestone — Verifies completion and demonstrated mastery of Lexi’s CEFR-aligned syllabus. An internal learning milestone, not an accredited examination diploma (IELTS/TOEFL/Cambridge).',
       skillsCertified: [
         'Handling spontaneous travel situations',
         'Explaining plans, dreams, and abstract ideas',
@@ -371,174 +374,9 @@ export function calculateAchievements(input: AchievementEvaluationInput): Learne
   };
 }
 
-export async function exportLearnerBackup(userId: string = 'local-learner-1'): Promise<LexiBackupPayload> {
-  const [
-    user,
-    preferences,
-    curriculumProgress,
-    vocabularyCards,
-    practiceSessions,
-    quickNotes,
-    savedDrawings,
-    dailyChallenges,
-    wordQuestResults,
-    activityCompletions,
-    bookmarkedIdioms,
-    dailyStudyPlans,
-  ] = await Promise.all([
-    db.users.get(userId),
-    db.practicePreferences.get(userId),
-    db.curriculumProgress.get(userId),
-    db.vocabularyCards.where('userId').equals(userId).toArray(),
-    db.practiceSessions.where('userId').equals(userId).toArray(),
-    db.quickNotes.where('userId').equals(userId).toArray(),
-    db.savedDrawings.where('userId').equals(userId).toArray(),
-    db.dailyChallenges.where('userId').equals(userId).toArray(),
-    db.wordQuestResults.where('userId').equals(userId).toArray(),
-    db.activityCompletions.where('userId').equals(userId).toArray(),
-    db.bookmarkedIdioms.where('userId').equals(userId).toArray(),
-    db.dailyStudyPlans.where('userId').equals(userId).toArray(),
-  ]);
-
-  return {
-    version: 'lexi-backup-v1',
-    exportedAt: new Date().toISOString(),
-    appName: 'Lexi English Learning',
-    userId,
-    data: {
-      user,
-      preferences,
-      curriculumProgress,
-      vocabularyCards,
-      practiceSessions,
-      quickNotes,
-      savedDrawings,
-      dailyChallenges,
-      wordQuestResults,
-      activityCompletions,
-      bookmarkedIdioms,
-      dailyStudyPlans,
-    },
-  };
-}
-
-export function validateBackupPayload(payload: unknown): { isValid: boolean; error?: string } {
-  if (!payload || typeof payload !== 'object') {
-    return { isValid: false, error: 'Backup data must be a valid JSON object.' };
-  }
-
-  const dataObj = payload as Partial<LexiBackupPayload>;
-  if (dataObj.version !== 'lexi-backup-v1') {
-    return { 
-      isValid: false, 
-      error: `Unsupported backup version "${dataObj.version}". Expected "lexi-backup-v1".` 
-    };
-  }
-
-  if (!dataObj.data || typeof dataObj.data !== 'object') {
-    return { isValid: false, error: 'Backup is missing data records payload.' };
-  }
-
-  return { isValid: true };
-}
-
-export async function importLearnerBackup(
-  userId: string = 'local-learner-1', 
-  payload: unknown
-): Promise<BackupImportResult> {
-  const validation = validateBackupPayload(payload);
-  if (!validation.isValid) {
-    return {
-      success: false,
-      message: validation.error || 'Invalid backup payload.',
-      error: validation.error,
-    };
-  }
-
-  const typedPayload = payload as LexiBackupPayload;
-  const itemsRestored: Record<string, number> = {};
-
-  try {
-    const { data } = typedPayload;
-
-    if (data.user) {
-      await db.users.put({ ...data.user, id: userId });
-      itemsRestored['userProfile'] = 1;
-    }
-
-    if (data.preferences) {
-      await db.practicePreferences.put({ ...data.preferences, userId });
-      itemsRestored['preferences'] = 1;
-    }
-
-    if (data.curriculumProgress) {
-      await db.curriculumProgress.put({ ...data.curriculumProgress, userId });
-      itemsRestored['curriculumProgress'] = 1;
-    }
-
-    if (data.vocabularyCards && data.vocabularyCards.length > 0) {
-      for (const card of data.vocabularyCards) {
-        await db.vocabularyCards.put({ ...card, userId });
-      }
-      itemsRestored['vocabularyCards'] = data.vocabularyCards.length;
-    }
-
-    if (data.practiceSessions && data.practiceSessions.length > 0) {
-      for (const session of data.practiceSessions) {
-        await db.practiceSessions.put({ ...session, userId });
-      }
-      itemsRestored['practiceSessions'] = data.practiceSessions.length;
-    }
-
-    if (data.quickNotes && data.quickNotes.length > 0) {
-      for (const note of data.quickNotes) {
-        await db.quickNotes.put({ ...note, userId });
-      }
-      itemsRestored['quickNotes'] = data.quickNotes.length;
-    }
-
-    if (data.activityCompletions && data.activityCompletions.length > 0) {
-      for (const act of data.activityCompletions) {
-        await db.activityCompletions.put({ ...act, userId });
-      }
-      itemsRestored['activityCompletions'] = data.activityCompletions.length;
-    }
-
-    if (data.dailyStudyPlans && data.dailyStudyPlans.length > 0) {
-      for (const plan of data.dailyStudyPlans) {
-        await db.dailyStudyPlans.put({ ...plan, userId });
-      }
-      itemsRestored['dailyStudyPlans'] = data.dailyStudyPlans.length;
-    }
-
-    return {
-      success: true,
-      message: 'Backup successfully restored to offline storage.',
-      itemsRestored,
-    };
-  } catch (err) {
-    return {
-      success: false,
-      message: 'Failed to restore backup into offline database.',
-      error: err instanceof Error ? err.message : String(err),
-    };
-  }
-}
-
-export function downloadBackupFile(backup: LexiBackupPayload, fileName?: string): void {
-  if (typeof window === 'undefined' || typeof document === 'undefined') {
-    return;
-  }
-
-  const jsonString = JSON.stringify(backup, null, 2);
-  const blob = new Blob([jsonString], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  const dateStr = new Date().toISOString().split('T')[0];
-  anchor.href = url;
-  anchor.download = fileName || `lexi-backup-${dateStr}.json`;
-  document.body.appendChild(anchor);
-  anchor.click();
-  document.body.removeChild(anchor);
-  URL.revokeObjectURL(url);
-}
+export {
+  exportLearnerBackup,
+  validateBackupPayload,
+  importLearnerBackup,
+  downloadBackupFile,
+} from './backupRestoreService';

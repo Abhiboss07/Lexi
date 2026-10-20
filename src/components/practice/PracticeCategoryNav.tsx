@@ -5,10 +5,11 @@ import {
   Sparkles, 
   FileText, 
   Headphones, 
-  ChevronRight 
+  ChevronRight,
+  Mic,
 } from 'lucide-react';
 
-export type PracticeCategoryKey = 'conversation' | 'stories' | 'vocabulary' | 'grammar' | 'listening' | 'interview';
+export type PracticeCategoryKey = 'conversation' | 'speaking' | 'stories' | 'vocabulary' | 'grammar' | 'listening' | 'interview';
 
 export interface PracticeCategoryNavProps {
   activeCategory?: PracticeCategoryKey;
@@ -35,6 +36,26 @@ export const PRACTICE_CATEGORIES: Array<{
     iconBg: 'bg-[#EFF6FF]',
     iconColor: 'text-[#2563EB]',
     description: 'Natural dialogues, instant feedback & confidence',
+  },
+  {
+    key: 'speaking',
+    title: 'Speaking',
+    badge: 'Fluency Coach',
+    badgeColor: 'bg-[#FFE4E6] text-[#E11D48] border-[#FECDD3]',
+    icon: Mic,
+    iconBg: 'bg-[#FFE4E6]',
+    iconColor: 'text-[#E11D48]',
+    description: 'Pronunciation models, rhythm & phrase-by-phrase practice',
+  },
+  {
+    key: 'listening',
+    title: 'Listening',
+    badge: 'Audio Studio',
+    badgeColor: 'bg-[#F5F3FF] text-[#7C3AED] border-[#DDD6FE]',
+    icon: Headphones,
+    iconBg: 'bg-[#F5F3FF]',
+    iconColor: 'text-[#7C3AED]',
+    description: 'CEFR audio dialogues, key phrases & comprehension checks',
   },
   {
     key: 'stories',
@@ -65,16 +86,6 @@ export const PRACTICE_CATEGORIES: Array<{
     iconBg: 'bg-[#FFFBEB]',
     iconColor: 'text-[#D97706]',
     description: 'Tenses, sentence transformations & error correction',
-  },
-  {
-    key: 'listening',
-    title: 'Listening',
-    badge: 'Audio Studio',
-    badgeColor: 'bg-[#F5F3FF] text-[#7C3AED] border-[#DDD6FE]',
-    icon: Headphones,
-    iconBg: 'bg-[#F5F3FF]',
-    iconColor: 'text-[#7C3AED]',
-    description: 'Native audio dialogues, key phrases & dictation',
   },
 ];
 

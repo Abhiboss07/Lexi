@@ -42,6 +42,7 @@ import {
   type NotificationCategoryPreferences, 
   DEFAULT_NOTIFICATION_CATEGORIES 
 } from '../../types/notifications';
+import { useModalFocusTrap } from '../../hooks/useModalFocusTrap';
 
 interface PracticePreferencesModalProps {
   userId?: string;
@@ -56,6 +57,8 @@ export const PracticePreferencesModal: React.FC<PracticePreferencesModalProps> =
   onClose,
   onSaved,
 }) => {
+  const modalRef = useModalFocusTrap<HTMLDivElement>({ isOpen, onClose });
+
   // Preferences State
   const [cefrLevel, setCefrLevel] = useState<CEFRLevel>('A2');
   const [difficulty, setDifficulty] = useState<PracticeDifficulty>('medium');
@@ -219,6 +222,7 @@ export const PracticePreferencesModal: React.FC<PracticePreferencesModalProps> =
 
   return (
     <div 
+      ref={modalRef}
       className="fixed inset-0 z-60 flex items-center justify-center p-3 sm:p-4 bg-[#15164B]/40 backdrop-blur-xs animate-in fade-in duration-200"
       role="dialog"
       aria-modal="true"
@@ -236,14 +240,14 @@ export const PracticePreferencesModal: React.FC<PracticePreferencesModalProps> =
             <h2 id="practice-prefs-title" className="text-[20px] font-black text-[#15164B] tracking-tight">
               Practice Preferences
             </h2>
-            <p className="text-[12px] font-medium text-[#6B7094]">
+            <p className="text-[12px] font-medium text-[#484E77]">
               Tune your proficiency level, pace, feedback, and weekly schedule.
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-[#F4F5FD] hover:bg-[#E8EBFB] text-[#222149] flex items-center justify-center transition-colors cursor-pointer"
+            className="min-w-[44px] min-h-[44px] rounded-full bg-[#F4F5FD] hover:bg-[#E8EBFB] text-[#15164B] flex items-center justify-center transition-colors cursor-pointer"
             aria-label="Close practice preferences"
           >
             <X className="w-4 h-4 stroke-[2.2]" />
@@ -700,6 +704,23 @@ export const PracticePreferencesModal: React.FC<PracticePreferencesModalProps> =
           <div className="flex items-center gap-1.5 text-[10px] text-[#7D82A8] pt-0.5">
             <ShieldCheck className="w-3 h-3 text-[#10B981] shrink-0" />
             <span>FSRS spaced-repetition schedules are calculated independently based on memory retention.</span>
+          </div>
+
+          {/* Privacy & Offline Data Handling Notice */}
+          <div className="p-3.5 rounded-2xl bg-[#F0F2FE] border border-[#DEE3FB] space-y-1.5 text-[11px] text-[#484E77]">
+            <div className="flex items-center gap-1.5 font-bold text-[#15164B]">
+              <ShieldCheck className="w-4 h-4 text-[#059669]" />
+              <span>Private, Local-First &amp; Ad-Free</span>
+            </div>
+            <p className="leading-relaxed text-[10.5px]">
+              <strong>Local Data:</strong> All curriculum progress, vocabulary cards, study plans, and assessment scores are stored strictly on your device in offline IndexedDB. Zero advertising or telemetry scripts are installed.
+            </p>
+            <p className="leading-relaxed text-[10.5px]">
+              <strong>Speech &amp; Input:</strong> Text-to-speech runs via your OS speech voices. Speech recognition utilizes the browser's Web Speech API (which may route microphone audio through browser platform services such as Google or Apple). Typed keyboard input is always available as a fully offline alternative.
+            </p>
+            <p className="leading-relaxed text-[10.5px]">
+              <strong>AI Conversation:</strong> Roleplay scenarios run by default on Lexi's offline linguistic engine. If an optional cloud AI key or proxy is configured, conversation turns are sent securely to the AI provider without ad tracking or cloud user profiling.
+            </p>
           </div>
         </div>
 
