@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { clearTestDatabase, seedPracticePreferences } from './testDbHelper';
 
 test.describe('Lexi Daily Practice & Screen Refinements — Verification Screenshots', () => {
   const viewports = [
@@ -71,6 +72,13 @@ test.describe('Lexi Daily Practice & Screen Refinements — Verification Screens
       await nav.getByRole('button', { name: 'Progress' }).click();
       await expect(page.getByText('Progress & Insights')).toBeVisible();
       await expect(page.getByText('Your Progress,')).toBeVisible();
+
+      const progressHeader = page.locator('header').filter({ hasText: 'Progress & Insights' });
+      if (await progressHeader.isVisible()) {
+        await progressHeader.screenshot({
+          path: `docs/testing/screenshots/progress_header_${vp.label}.png`,
+        });
+      }
 
       await page.screenshot({
         path: `docs/testing/screenshots/progress_screen_${vp.label}.png`,
@@ -149,38 +157,33 @@ test.describe('Lexi Daily Practice & Screen Refinements — Verification Screens
   test('Captures responsive screenshots for Smart Notification Toast', async ({ page }) => {
     // 1. Initial setup to guarantee toast appears regardless of time of day
     await page.goto('/');
-    await page.evaluate(async () => {
+    await page.evaluate(() => {
       sessionStorage.setItem('lexi_splash_shown', 'true');
-      const lexiDb = (window as any).__lexiDb;
-      if (lexiDb) {
-        if (lexiDb.notificationEvents) {
-          await lexiDb.notificationEvents.clear();
-        }
-        await lexiDb.practicePreferences.put({
-          userId: 'local-learner-1',
-          cefrLevel: 'A2',
-          defaultDifficulty: 'medium',
-          defaultSessionLength: 'standard',
-          dailyGoalMinutes: 15,
-          correctionTiming: 'immediate',
-          explanationDepth: 'gentle',
-          hintsEnabled: true,
-          inputMode: 'text_first',
-          practiceDays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-          reminderFrequency: 'off',
-          inAppRemindersEnabled: true,
-          systemNotificationsEnabled: false,
-          notificationCategories: {
-            streaks: true,
-            vocabulary: true,
-            dailyChallenge: true,
-            unfinished: true,
-            milestones: true,
-          },
-          quietHoursStart: '23:59',
-          quietHoursEnd: '00:01',
-        });
-      }
+    });
+    await clearTestDatabase(page);
+    await seedPracticePreferences(page, {
+      userId: 'local-learner-1',
+      cefrLevel: 'A2',
+      defaultDifficulty: 'medium',
+      defaultSessionLength: 'standard',
+      dailyGoalMinutes: 15,
+      correctionTiming: 'immediate',
+      explanationDepth: 'gentle',
+      hintsEnabled: true,
+      inputMode: 'text_first',
+      practiceDays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+      reminderFrequency: 'off',
+      inAppRemindersEnabled: true,
+      systemNotificationsEnabled: false,
+      notificationCategories: {
+        streaks: true,
+        vocabulary: true,
+        dailyChallenge: true,
+        unfinished: true,
+        milestones: true,
+      },
+      quietHoursStart: '23:59',
+      quietHoursEnd: '00:01',
     });
     await page.reload();
 

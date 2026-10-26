@@ -1,14 +1,10 @@
 import { test, expect } from '@playwright/test';
+import { clearTestDatabase } from './testDbHelper';
 
 test.describe('Lexi Daily Practice — Fully Functional Daily Practice & Persistence', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.evaluate(async () => {
-      const lexiDb = (window as any).__lexiDb;
-      if (lexiDb && lexiDb.tables) {
-        await Promise.all(lexiDb.tables.map((t: any) => t.clear()));
-      }
-    });
+    await clearTestDatabase(page);
     await page.reload();
   });
 

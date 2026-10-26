@@ -3,3 +3,7 @@ dist/
 test-results/
 .vite/
 *.local
+.env
+.env.*
+.env.production
+.env.development

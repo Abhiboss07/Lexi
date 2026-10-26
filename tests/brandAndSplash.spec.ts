@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { clearTestDatabase } from './testDbHelper';
 
 test.describe('Lexi Brand Identity & Modern Opening Animation', () => {
   test.beforeEach(async ({ page }) => {
@@ -6,11 +7,8 @@ test.describe('Lexi Brand Identity & Modern Opening Animation', () => {
     await page.goto('/');
     await page.evaluate(() => {
       sessionStorage.clear();
-      const lexiDb = (window as any).__lexiDb;
-      if (lexiDb && lexiDb.tables) {
-        return Promise.all(lexiDb.tables.map((t: any) => t.clear()));
-      }
     });
+    await clearTestDatabase(page);
   });
 
   test('opening animation displays brand mark on initial load and smoothly transitions to app', async ({ page }) => {
