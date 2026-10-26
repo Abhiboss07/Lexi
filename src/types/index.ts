@@ -8,6 +8,8 @@ export * from './achievements';
 export * from './quickPicks';
 export * from './scenarios';
 export * from './adaptivePlan';
+export * from './conversationCoach';
+export * from './assessment';
 
 export interface UserProfile {
   id: string;
