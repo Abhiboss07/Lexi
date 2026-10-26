@@ -11,7 +11,8 @@ import {
   FileText, 
   Headphones, 
   Award,
-  ChevronRight
+  ChevronRight,
+  Mic
 } from 'lucide-react';
 import type { 
   DailyStudyPlanRecord, 
@@ -99,11 +100,13 @@ export const TodaysLearningPlan: React.FC<TodaysLearningPlanProps> = ({
       case 'scenario_roleplay':
         return <MessageCircle className="w-4 h-4 text-purple-600" />;
       case 'weakness_reinforcement':
-        return item.category === 'listening' ? (
-          <Headphones className="w-4 h-4 text-violet-600" />
-        ) : (
-          <FileText className="w-4 h-4 text-amber-600" />
-        );
+        if (item.category === 'listening') {
+          return <Headphones className="w-4 h-4 text-violet-600" />;
+        }
+        if (item.category === 'speaking') {
+          return <Mic className="w-4 h-4 text-rose-600" />;
+        }
+        return <FileText className="w-4 h-4 text-amber-600" />;
       case 'daily_challenge':
         return <Award className="w-4 h-4 text-amber-500" />;
       default:

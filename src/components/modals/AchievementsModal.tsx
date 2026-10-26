@@ -27,6 +27,7 @@ import {
   importLearnerBackup,
   downloadBackupFile,
 } from '../../services/achievementService';
+import { useModalFocusTrap } from '../../hooks/useModalFocusTrap';
 
 interface AchievementsModalProps {
   isOpen: boolean;
@@ -52,6 +53,7 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({
   const [selectedCertificate, setSelectedCertificate] = useState<CEFRCertificate | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const modalRef = useModalFocusTrap<HTMLDivElement>({ isOpen, onClose });
 
   if (!isOpen) return null;
 
@@ -122,11 +124,30 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Enforce 5 MB maximum file size limit to prevent memory exhaustion & DoS
+    const MAX_FILE_SIZE = 5 * 1024 * 1024;
+    if (file.size > MAX_FILE_SIZE) {
+      setImportStatus({
+        success: false,
+        message: 'Backup file exceeds the 5 MB maximum size limit. Please provide a valid Lexi backup file.',
+      });
+      return;
+    }
+
     try {
       setIsImporting(true);
       setImportStatus(null);
       const text = await file.text();
-      const parsed = JSON.parse(text);
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(text);
+      } catch {
+        setImportStatus({
+          success: false,
+          message: 'Malformed or corrupt JSON file. Please provide a valid Lexi JSON backup.',
+        });
+        return;
+      }
 
       const result = await importLearnerBackup(userId, parsed);
       setImportStatus({
@@ -140,7 +161,7 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({
     } catch (err) {
       setImportStatus({
         success: false,
-        message: 'Could not parse backup file. Please provide a valid Lexi JSON backup.',
+        message: 'Could not process backup file. Please provide a valid Lexi JSON backup.',
       });
     } finally {
       setIsImporting(false);
@@ -152,6 +173,7 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({
 
   return (
     <div
+      ref={modalRef}
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/45 backdrop-blur-xs p-0 sm:p-4 animate-in fade-in duration-200"
       role="dialog"
       aria-modal="true"
@@ -177,17 +199,17 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({
                     {summary?.rankTitle || 'Learner'}
                   </span>
                 </div>
-                <p className="text-[11px] sm:text-[11.5px] font-medium text-[#6B7094] line-clamp-1 mt-0.5">
+                <p className="text-[11px] sm:text-[11.5px] font-medium text-[#484E77] line-clamp-1 mt-0.5">
                   {summary?.rankDescription || 'Track learning milestones, certificates, and offline backups.'}
                 </p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="w-8 h-8 rounded-full bg-[#F4F5FD] hover:bg-[#E8EBFB] flex items-center justify-center text-[#222149] transition-colors shrink-0 cursor-pointer"
+              className="min-w-[44px] min-h-[44px] rounded-full bg-[#F4F5FD] hover:bg-[#E8EBFB] flex items-center justify-center text-[#15164B] transition-colors shrink-0 cursor-pointer"
               aria-label="Close achievements modal"
             >
-              <X className="w-4 h-4" />
+              <X className="w-4.5 h-4.5 stroke-[2.2]" />
             </button>
           </div>
 
@@ -391,14 +413,20 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({
           {/* TAB 2: CEFR CERTIFICATES */}
           {activeTab === 'certificates' && (
             <div className="space-y-4">
-              <div className="p-3.5 rounded-2xl bg-white border border-[#ECEEFE] shadow-xs space-y-1">
+              <div className="p-3.5 rounded-2xl bg-white border border-[#ECEEFE] shadow-xs space-y-1.5 text-left">
                 <h3 className="text-[13px] font-black text-[#15164B] flex items-center gap-1.5">
                   <ShieldCheck className="w-4 h-4 text-[#4F46E5]" />
-                  <span>CEFR Fluency Credentials</span>
+                  <span>CEFR Curriculum Milestone Certificates</span>
                 </h3>
-                <p className="text-[11.5px] text-[#6B7094]">
-                  Officially verified language capability records calculated from completed lessons and practice accuracy.
+                <p className="text-[11.5px] text-[#6B7094] leading-relaxed">
+                  Internal learning milestone certificates recognizing demonstrated completion and mastery of Lexi’s CEFR-aligned syllabus.
                 </p>
+                <div className="p-2.5 rounded-xl bg-[#F0F2FD] border border-[#CCD1F0] text-[10.5px] text-[#545CA6] flex items-start gap-1.5">
+                  <AlertCircle className="w-3.5 h-3.5 text-[#545CA6] shrink-0 mt-0.5" />
+                  <span>
+                    <strong>Informal Milestone Disclaimer:</strong> These certificates track internal educational progression in Lexi and do not represent external accredited qualifications (such as IELTS, TOEFL, or Cambridge).
+                  </span>
+                </div>
               </div>
 
               <div className="space-y-3">
@@ -628,8 +656,12 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({
               <div className="flex items-center justify-between text-[11px] font-bold text-[#6B7094] border-t border-[#EEF2FF] pt-3">
                 <span>ID: {selectedCertificate.credentialId}</span>
                 <span>Accuracy: {selectedCertificate.accuracyScore}%</span>
-                <span>Lexi Certified</span>
+                <span>Internal Milestone</span>
               </div>
+
+              <p className="text-[10px] text-[#8E93B8] leading-tight text-center">
+                Lexi internal curriculum milestone certificate. Not an accredited external examination qualification (IELTS/TOEFL/Cambridge).
+              </p>
 
               <button
                 type="button"

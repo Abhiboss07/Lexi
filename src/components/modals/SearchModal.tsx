@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useDeferredValue } from 'react';
 import { X, Search, BookOpen, MessageSquare, Sparkles, Headphones, Briefcase, FileText } from 'lucide-react';
 import { searchCurriculum, type CurriculumSearchResult } from '../../services/curriculumSearchService';
+import { useModalFocusTrap } from '../../hooks/useModalFocusTrap';
 
 interface SearchModalProps {
   isOpen: boolean;
@@ -16,10 +17,13 @@ export const SearchModal: React.FC<SearchModalProps> = ({
   onSelectResult,
 }) => {
   const [query, setQuery] = useState('');
+  const deferredQuery = useDeferredValue(query);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const modalRef = useModalFocusTrap<HTMLDivElement>({ isOpen, onClose, initialFocusRef: inputRef });
 
   const searchResults = useMemo(() => {
-    return searchCurriculum(query);
-  }, [query]);
+    return searchCurriculum(deferredQuery);
+  }, [deferredQuery]);
 
   if (!isOpen) return null;
 
@@ -43,6 +47,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
 
   return (
     <div 
+      ref={modalRef}
       className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 backdrop-blur-xs p-4 pt-16 animate-in fade-in duration-150"
       role="dialog"
       aria-modal="true"
@@ -51,18 +56,19 @@ export const SearchModal: React.FC<SearchModalProps> = ({
       <div className="w-full max-w-[480px] bg-white rounded-3xl p-5 shadow-2xl border border-[#ECEEFE]">
         {/* Search Input Bar */}
         <div className="flex items-center gap-3 pb-3 border-b border-[#ECEEFE]">
-          <Search className="w-5 h-5 text-[#646AA4] shrink-0" />
+          <Search className="w-5 h-5 text-[#646AA4] shrink-0" aria-hidden="true" />
           <input
+            ref={inputRef}
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search grammar, stories, topics..."
-            autoFocus
-            className="w-full text-[15px] font-medium text-[#222149] placeholder:text-[#9AA0C2] focus:outline-hidden"
+            aria-label="Search curriculum query"
+            className="w-full text-[15px] font-medium text-[#15164B] placeholder:text-[#5A5F8A] focus:outline-hidden"
           />
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-[#F4F5FD] hover:bg-[#E8EBFB] flex items-center justify-center text-[#222149] transition-colors"
+            className="min-w-[44px] min-h-[44px] rounded-full bg-[#F4F5FD] hover:bg-[#E8EBFB] flex items-center justify-center text-[#15164B] transition-colors cursor-pointer"
             aria-label="Close search"
           >
             <X className="w-4 h-4" />
