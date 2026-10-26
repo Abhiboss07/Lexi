@@ -5,6 +5,7 @@ import type { Grade } from 'ts-fsrs';
 import type { VocabularyCardRecord } from '../../types/vocabulary';
 import { getRatingPreviews } from '../../services/fsrsScheduler';
 import { vocabularyRepository } from '../../db/vocabularyRepository';
+import { useModalFocusTrap } from '../../hooks/useModalFocusTrap';
 
 interface ReviewPlayerProps {
   cards: VocabularyCardRecord[];
@@ -22,6 +23,20 @@ export const ReviewPlayer: React.FC<ReviewPlayerProps> = ({
   const [reviewedCount, setReviewedCount] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [isSubmittingRating, setIsSubmittingRating] = useState(false);
+
+  const handleSafeExit = () => {
+    if (isFinished) {
+      onClose();
+    } else {
+      setShowExitConfirm(true);
+    }
+  };
+
+  const modalRef = useModalFocusTrap<HTMLDivElement>({
+    isOpen: true,
+    onClose: handleSafeExit,
+  });
 
   const currentCard = cards[currentIdx];
 
@@ -36,12 +51,15 @@ export const ReviewPlayer: React.FC<ReviewPlayerProps> = ({
   };
 
   const handleRate = async (rating: Grade) => {
-    if (!currentCard) return;
+    if (!currentCard || isSubmittingRating) return;
 
+    setIsSubmittingRating(true);
     try {
       await vocabularyRepository.recordReview(currentCard, rating);
     } catch (err) {
       console.warn('Error recording review to repository:', err);
+    } finally {
+      setIsSubmittingRating(false);
     }
 
     const nextCount = reviewedCount + 1;
@@ -52,23 +70,24 @@ export const ReviewPlayer: React.FC<ReviewPlayerProps> = ({
       setCurrentIdx((prev) => prev + 1);
     } else {
       setIsFinished(true);
-      confetti({
-        particleCount: 50,
-        spread: 60,
-        origin: { y: 0.6 },
-        colors: ['#232655', '#646AA4', '#10B981', '#F59E0B'],
-      });
+      try {
+        const prefersReducedMotion =
+          typeof window !== 'undefined' &&
+          window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (!prefersReducedMotion) {
+          confetti({
+            particleCount: 50,
+            spread: 60,
+            origin: { y: 0.6 },
+            colors: ['#232655', '#646AA4', '#10B981', '#F59E0B'],
+          });
+        }
+      } catch {
+        // Safe in headless or unsupported environments
+      }
       if (onFinishedReview) {
         onFinishedReview(nextCount);
       }
-    }
-  };
-
-  const handleSafeExit = () => {
-    if (isFinished) {
-      onClose();
-    } else {
-      setShowExitConfirm(true);
     }
   };
 
@@ -106,6 +125,7 @@ export const ReviewPlayer: React.FC<ReviewPlayerProps> = ({
 
   return (
     <div 
+      ref={modalRef}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-0 sm:p-4"
       role="dialog"
       aria-modal="true"
@@ -120,7 +140,7 @@ export const ReviewPlayer: React.FC<ReviewPlayerProps> = ({
               <button
                 type="button"
                 onClick={handleSafeExit}
-                className="w-9 h-9 rounded-full bg-[#F4F5FD] hover:bg-[#E8EBFB] flex items-center justify-center text-[#222149] transition-colors cursor-pointer"
+                className="min-w-[44px] min-h-[44px] rounded-full bg-[#F4F5FD] hover:bg-[#E8EBFB] flex items-center justify-center text-[#15164B] transition-colors cursor-pointer"
                 aria-label="Exit review"
               >
                 <X className="w-5 h-5 stroke-[2.2]" />
@@ -308,8 +328,9 @@ export const ReviewPlayer: React.FC<ReviewPlayerProps> = ({
                     <button
                       key={preview.rating}
                       type="button"
+                      disabled={isSubmittingRating}
                       onClick={() => handleRate(preview.rating)}
-                      className={`py-2 px-1 rounded-2xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5 ${preview.colorClass}`}
+                      className={`py-2 px-1 rounded-2xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5 disabled:opacity-50 ${preview.colorClass}`}
                     >
                       <span className="text-[13px] font-extrabold leading-tight">
                         {preview.label}
@@ -327,12 +348,18 @@ export const ReviewPlayer: React.FC<ReviewPlayerProps> = ({
 
         {/* Exit Confirmation Dialog */}
         {showExitConfirm && (
-          <div className="absolute inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="exit-confirm-title"
+            aria-describedby="exit-confirm-desc"
+          >
             <div className="w-full max-w-[320px] bg-white rounded-3xl p-5 shadow-2xl border border-[#ECEEFE] space-y-3 text-center">
-              <h3 className="text-[16px] font-extrabold text-[#1C2046]">
+              <h3 id="exit-confirm-title" className="text-[16px] font-extrabold text-[#1C2046]">
                 Leave Review Session?
               </h3>
-              <p className="text-[12.5px] text-[#636C9E]">
+              <p id="exit-confirm-desc" className="text-[12.5px] text-[#636C9E]">
                 Your completed ratings are saved. You can finish the remaining due cards anytime.
               </p>
               <div className="flex gap-2 pt-1">

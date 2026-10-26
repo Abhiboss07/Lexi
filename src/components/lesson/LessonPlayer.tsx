@@ -11,6 +11,7 @@ import {
 } from '../../services/lessonScoring';
 import { curriculumRepository } from '../../db/curriculumRepository';
 import { vocabularyRepository } from '../../db/vocabularyRepository';
+import { useModalFocusTrap } from '../../hooks/useModalFocusTrap';
 import {
   MultipleChoiceView,
   DialogueView,
@@ -43,11 +44,26 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({
   const [isLessonFinished, setIsLessonFinished] = useState(false);
   const [scoreResult, setScoreResult] = useState<LessonScoreResult | null>(null);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [isPersisting, setIsPersisting] = useState(false);
+  const [persistenceError, setPersistenceError] = useState<string | null>(null);
 
   const activities = lesson.activities;
   const currentActivity: LessonActivity | undefined = activities[currentIdx];
   const currentAnswer = currentActivity ? answers[currentActivity.id] : undefined;
   const currentEvaluation = currentActivity ? evaluations[currentActivity.id] : undefined;
+
+  const handleSafeExit = () => {
+    if (isLessonFinished || Object.keys(evaluations).length === 0) {
+      onClose();
+    } else {
+      setShowExitConfirm(true);
+    }
+  };
+
+  const modalRef = useModalFocusTrap<HTMLDivElement>({
+    isOpen: true,
+    onClose: handleSafeExit,
+  });
 
   // Handle setting current answer safely
   const handleSetAnswer = (ans: ActivityAnswer) => {
@@ -97,53 +113,69 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({
 
     if (evaluation.isCorrect) {
       try {
-        confetti({
-          particleCount: 30,
-          spread: 50,
-          origin: { y: 0.8 },
-          colors: ['#232655', '#646AA4', '#10B981', '#FF6243'],
-        });
+        const prefersReducedMotion =
+          typeof window !== 'undefined' &&
+          window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (!prefersReducedMotion) {
+          confetti({
+            particleCount: 30,
+            spread: 50,
+            origin: { y: 0.8 },
+            colors: ['#232655', '#646AA4', '#10B981', '#FF6243'],
+          });
+        }
       } catch {
         // Safe in headless or environments without canvas
       }
     }
   };
 
-  const handleNextActivity = async () => {
-    if (currentIdx < activities.length - 1) {
-      setCurrentIdx((prev) => prev + 1);
-      setIsSubmitted(false);
-    } else {
-      // Calculate final score
-      const finalScore = calculateLessonScore(evaluations, activities.length);
-      setScoreResult(finalScore);
-      setIsLessonFinished(true);
+  const persistAndFinish = async (finalScore: LessonScoreResult) => {
+    setIsPersisting(true);
+    setPersistenceError(null);
 
-      // Persist to curriculum repository
-      try {
-        await curriculumRepository.recordLessonCompletion(
+    try {
+      await curriculumRepository.recordLessonCompletion(
+        userId,
+        lesson.id,
+        finalScore.scorePercent
+      );
+
+      // Product Rule: Onboard curated vocabulary if learner passed the lesson (>= 80%)
+      if (finalScore.isPassed && lesson.vocabulary && lesson.vocabulary.length > 0) {
+        await vocabularyRepository.addVocabularyFromLesson(
           userId,
           lesson.id,
-          finalScore.scorePercent
+          lesson.vocabulary,
+          lesson.title,
+          lesson.level
         );
-
-        // Product Rule: Onboard curated vocabulary if learner passed the lesson (>= 80%)
-        if (finalScore.isPassed && lesson.vocabulary && lesson.vocabulary.length > 0) {
-          await vocabularyRepository.addVocabularyFromLesson(
-            userId,
-            lesson.id,
-            lesson.vocabulary,
-            lesson.title,
-            lesson.level
-          );
-        }
-      } catch (err) {
-        console.warn('Could not persist lesson completion to repository:', err);
       }
+
+      setScoreResult(finalScore);
+      setIsLessonFinished(true);
 
       if (onCompleteLesson) {
         onCompleteLesson(lesson.id, finalScore.scorePercent);
       }
+    } catch (err) {
+      console.error('Failed to persist lesson completion to repository:', err);
+      setPersistenceError('Unable to save lesson progress offline. Please check your storage or retry.');
+    } finally {
+      setIsPersisting(false);
+    }
+  };
+
+  const handleNextActivity = async () => {
+    if (isPersisting) return;
+    if (currentIdx < activities.length - 1) {
+      setCurrentIdx((prev) => prev + 1);
+      setIsSubmitted(false);
+      setPersistenceError(null);
+    } else {
+      // Calculate final score
+      const finalScore = calculateLessonScore(evaluations, activities.length);
+      await persistAndFinish(finalScore);
     }
   };
 
@@ -154,14 +186,6 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({
     setIsSubmitted(false);
     setIsLessonFinished(false);
     setScoreResult(null);
-  };
-
-  const handleSafeExit = () => {
-    if (isLessonFinished || Object.keys(evaluations).length === 0) {
-      onClose();
-    } else {
-      setShowExitConfirm(true);
-    }
   };
 
   if (!currentActivity && !isLessonFinished) {
@@ -180,6 +204,7 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({
 
   return (
     <div 
+      ref={modalRef}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-0 sm:p-4"
       role="dialog"
       aria-modal="true"
@@ -195,7 +220,7 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({
               <button
                 type="button"
                 onClick={handleSafeExit}
-                className="w-9 h-9 rounded-full bg-[#F4F5FD] hover:bg-[#E8EBFB] flex items-center justify-center text-[#222149] transition-colors cursor-pointer"
+                className="min-w-[44px] min-h-[44px] rounded-full bg-[#F4F5FD] hover:bg-[#E8EBFB] flex items-center justify-center text-[#15164B] transition-colors cursor-pointer"
                 aria-label="Exit lesson"
               >
                 <X className="w-5 h-5 stroke-[2.2]" />
@@ -331,6 +356,9 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({
                       ? 'bg-[#ECFDF5] border border-[#A7F3D0] text-[#065F46]'
                       : 'bg-[#FEF2F2] border border-[#FECACA] text-[#991B1B]'
                   }`}
+                  role="status"
+                  aria-live="polite"
+                  aria-atomic="true"
                 >
                   {currentEvaluation.isCorrect ? (
                     <CheckCircle2 className="w-5 h-5 text-[#10B981] shrink-0 mt-0.5" />
@@ -347,12 +375,33 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({
                   </div>
                 </div>
 
+                {persistenceError && (
+                  <div className="p-3 rounded-2xl bg-[#FEF2F2] border border-[#FECACA] flex items-center justify-between text-[12.5px] text-[#991B1B]">
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 text-[#EF4444] shrink-0" />
+                      <span>{persistenceError}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const finalScore = calculateLessonScore(evaluations, activities.length);
+                        persistAndFinish(finalScore);
+                      }}
+                      disabled={isPersisting}
+                      className="px-3 py-1 bg-[#1E224E] text-white rounded-lg text-[11px] font-bold hover:bg-[#141738] transition-colors cursor-pointer"
+                    >
+                      {isPersisting ? 'Retrying...' : 'Retry'}
+                    </button>
+                  </div>
+                )}
+
                 <button
                   type="button"
                   onClick={handleNextActivity}
-                  className="w-full py-3.5 rounded-full bg-[#1E224E] hover:bg-[#141738] text-white text-[14px] font-bold shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  disabled={isPersisting}
+                  className="w-full py-3.5 rounded-full bg-[#1E224E] hover:bg-[#141738] disabled:bg-[#8E93B8] text-white text-[14px] font-bold shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <span>Continue</span>
+                  <span>{isPersisting ? 'Saving Progress...' : 'Continue'}</span>
                   <ArrowRight className="w-4 h-4 stroke-[2.5]" />
                 </button>
               </div>

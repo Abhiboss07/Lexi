@@ -24,6 +24,7 @@ import type {
 } from '../../types/scenarios';
 import { scenarioSimulationService } from '../../services/scenarioSimulationService';
 import { getMappedLessonForActivity } from '../../data/lessonMapping';
+import { useModalFocusTrap } from '../../hooks/useModalFocusTrap';
 
 interface InteractiveScenarioModalProps {
   isOpen: boolean;
@@ -48,6 +49,7 @@ export const InteractiveScenarioModal: React.FC<InteractiveScenarioModalProps> =
   onSessionComplete,
   onStartLesson,
 }) => {
+  const modalRef = useModalFocusTrap<HTMLDivElement>({ isOpen, onClose });
   const [scenario, setScenario] = useState<ScenarioDefinition | null>(null);
   const [currentTurnIdx, setCurrentTurnIdx] = useState<number>(0);
   const [history, setHistory] = useState<CompletedTurnChoice[]>([]);
@@ -295,12 +297,21 @@ export const InteractiveScenarioModal: React.FC<InteractiveScenarioModalProps> =
       });
       setWordsSaved(true);
       setSessionResult(result);
-      confetti({
-        particleCount: 35,
-        spread: 60,
-        origin: { y: 0.8 },
-        colors: ['#10B981', '#6366F1', '#FBBF24'],
-      });
+      try {
+        const prefersReducedMotion =
+          typeof window !== 'undefined' &&
+          window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (!prefersReducedMotion) {
+          confetti({
+            particleCount: 35,
+            spread: 60,
+            origin: { y: 0.8 },
+            colors: ['#10B981', '#6366F1', '#FBBF24'],
+          });
+        }
+      } catch {
+        // Safe fallback
+      }
     } finally {
       setSavingWords(false);
     }
@@ -324,6 +335,7 @@ export const InteractiveScenarioModal: React.FC<InteractiveScenarioModalProps> =
 
   return (
     <div
+      ref={modalRef}
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/45 backdrop-blur-xs p-0 sm:p-4 animate-in fade-in duration-200"
       role="dialog"
       aria-modal="true"
@@ -340,17 +352,17 @@ export const InteractiveScenarioModal: React.FC<InteractiveScenarioModalProps> =
               <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50/80 px-2 py-0.5 rounded-full inline-block mb-0.5">
                 {scenario.category}
               </span>
-              <h2 id="scenario-title" className="text-[16px] xs:text-[17px] font-bold text-[#222149] truncate leading-tight">
+              <h2 id="scenario-title" className="text-[16px] xs:text-[17px] font-bold text-[#15164B] truncate leading-tight">
                 {scenario.title}
               </h2>
-              <p className="text-[11px] font-medium text-[#7D82A8] truncate mt-0.5">
+              <p className="text-[11px] font-medium text-[#484E77] truncate mt-0.5">
                 {scenario.category} • {scenario.difficulty} • {scenario.duration}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-white hover:bg-[#ECEEFE] border border-[#ECEEFE] flex items-center justify-center text-[#222149] transition-colors shrink-0 ml-2"
+            className="min-w-[44px] min-h-[44px] rounded-full bg-white hover:bg-[#ECEEFE] border border-[#ECEEFE] flex items-center justify-center text-[#15164B] transition-colors shrink-0 ml-2 cursor-pointer"
             aria-label="Close dialog"
           >
             <X className="w-5 h-5 stroke-[2.2]" />

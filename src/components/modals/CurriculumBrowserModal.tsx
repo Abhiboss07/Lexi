@@ -3,6 +3,7 @@ import { X, Award, CheckCircle2, Lock, ArrowRight, BookOpen, Clock } from 'lucid
 import type { CEFRLevel, CurriculumLesson, CurriculumUnit } from '../../types/curriculum';
 import { CEFR_LEVELS_META, getUnitsForLevel, getLessonsForUnit } from '../../data/curriculum';
 import type { CurriculumProgressionState } from '../../types/curriculum';
+import { useModalFocusTrap } from '../../hooks/useModalFocusTrap';
 
 interface CurriculumBrowserModalProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ export const CurriculumBrowserModal: React.FC<CurriculumBrowserModalProps> = ({
   onSelectLesson,
 }) => {
   const [selectedLevel, setSelectedLevel] = useState<CEFRLevel>(initialLevel);
+  const modalRef = useModalFocusTrap<HTMLDivElement>({ isOpen, onClose });
 
   if (!isOpen) return null;
 
@@ -29,6 +31,7 @@ export const CurriculumBrowserModal: React.FC<CurriculumBrowserModalProps> = ({
 
   return (
     <div
+      ref={modalRef}
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-xs p-0 sm:p-4 animate-in fade-in duration-200"
       role="dialog"
       aria-modal="true"
@@ -46,17 +49,17 @@ export const CurriculumBrowserModal: React.FC<CurriculumBrowserModalProps> = ({
                 <h2 id="curriculum-browser-title" className="text-[18px] sm:text-[20px] font-black text-[#15164B] tracking-tight">
                   CEFR Curriculum Roadmap
                 </h2>
-                <p className="text-[12px] font-medium text-[#6B7094]">
+                <p className="text-[12px] font-medium text-[#484E77]">
                   Structured English progression from Beginner to Mastery
                 </p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="w-8 h-8 rounded-full bg-[#F4F5FD] hover:bg-[#E8EBFB] flex items-center justify-center text-[#222149] transition-colors shrink-0"
+              className="min-w-[44px] min-h-[44px] rounded-full bg-[#F4F5FD] hover:bg-[#E8EBFB] flex items-center justify-center text-[#15164B] transition-colors shrink-0 cursor-pointer"
               aria-label="Close curriculum roadmap"
             >
-              <X className="w-4 h-4" />
+              <X className="w-4.5 h-4.5 stroke-[2.2]" />
             </button>
           </div>
 

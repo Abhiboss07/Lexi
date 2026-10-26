@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, CheckCircle2, Sparkles, Volume2, ArrowRight } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { useModalFocusTrap } from '../../hooks/useModalFocusTrap';
 
 interface ActivityModalProps {
   isOpen: boolean;
@@ -27,6 +28,7 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
 }) => {
   const [selectedOption, setSelectedOption] = React.useState<number | null>(null);
   const [isCompleted, setIsCompleted] = React.useState(false);
+  const modalRef = useModalFocusTrap<HTMLDivElement>({ isOpen, onClose });
 
   if (!isOpen) return null;
 
@@ -42,12 +44,21 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
 
   const handleCheck = () => {
     setIsCompleted(true);
-    confetti({
-      particleCount: 45,
-      spread: 60,
-      origin: { y: 0.7 },
-      colors: ['#232655', '#646AA4', '#FF6243', '#F5A623'],
-    });
+    try {
+      const prefersReducedMotion =
+        typeof window !== 'undefined' &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!prefersReducedMotion) {
+        confetti({
+          particleCount: 45,
+          spread: 60,
+          origin: { y: 0.7 },
+          colors: ['#232655', '#646AA4', '#FF6243', '#F5A623'],
+        });
+      }
+    } catch {
+      // Safe fallback
+    }
     if (onCompleteExercise) {
       onCompleteExercise();
     }
@@ -55,6 +66,7 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
 
   return (
     <div 
+      ref={modalRef}
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-xs p-0 sm:p-4 animate-in fade-in duration-200"
       role="dialog"
       aria-modal="true"
@@ -65,22 +77,22 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
         <div className="flex items-center justify-between pb-4 border-b border-[#ECEEFE]">
           <div>
             {category && (
-              <span className="text-[11px] font-bold uppercase tracking-widest text-[#646AA4] block mb-1">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-[#545CA6] block mb-1">
                 {category}
               </span>
             )}
-            <h3 id="modal-title" className="text-[20px] font-bold text-[#222149]">
+            <h3 id="modal-title" className="text-[20px] font-bold text-[#15164B]">
               {title}
             </h3>
             {subtitle && (
-              <p className="text-[12px] font-medium text-[#7D82A8] mt-0.5">
+              <p className="text-[12px] font-medium text-[#484E77] mt-0.5">
                 {subtitle}
               </p>
             )}
           </div>
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-[#F4F5FD] hover:bg-[#E8EBFB] flex items-center justify-center text-[#222149] transition-colors"
+            className="min-w-[44px] min-h-[44px] rounded-full bg-[#F4F5FD] hover:bg-[#E8EBFB] flex items-center justify-center text-[#15164B] transition-colors cursor-pointer"
             aria-label="Close dialog"
           >
             <X className="w-5 h-5 stroke-[2.2]" />
