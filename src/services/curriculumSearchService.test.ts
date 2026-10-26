@@ -28,6 +28,14 @@ describe('curriculumSearchService', () => {
     expect(cafeLesson).toBeDefined();
   });
 
+  it('matches B1 and B2 curriculum lessons by advanced terms', () => {
+    const b1Results = searchCurriculum('elevator pitch');
+    expect(b1Results.some((r) => r.lessonId === 'b1-u7-l1-elevator-pitch')).toBe(true);
+
+    const b2Results = searchCurriculum('debates');
+    expect(b2Results.some((r) => r.lessonId === 'b2-u9-l1-debates')).toBe(true);
+  });
+
   it('returns empty array when query has no matching lessons or studios', () => {
     const results = searchCurriculum('xyznonexistentquery999');
     expect(results).toHaveLength(0);

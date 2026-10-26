@@ -98,7 +98,7 @@ export const CEFR_LEVELS_META: Record<CEFRLevel, CEFRLevelMeta> = {
       'Relative clauses (who, which, that, where)',
     ],
     prerequisites: ['A1', 'A2'],
-    status: 'planned',
+    status: 'available',
   },
   B2: {
     code: 'B2',
@@ -128,7 +128,7 @@ export const CEFR_LEVELS_META: Record<CEFRLevel, CEFRLevelMeta> = {
       'Cleft sentences (What surprised me was..., It was John who...)',
     ],
     prerequisites: ['A1', 'A2', 'B1'],
-    status: 'planned',
+    status: 'available',
   },
   C1: {
     code: 'C1',

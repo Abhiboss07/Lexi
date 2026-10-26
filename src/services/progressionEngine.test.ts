@@ -29,7 +29,8 @@ describe('Lexi CEFR Curriculum Architecture & Integrity', () => {
 
     expect(LEXI_CURRICULUM.levels.A1.status).toBe('available');
     expect(LEXI_CURRICULUM.levels.A2.status).toBe('available');
-    expect(LEXI_CURRICULUM.levels.B1.status).toBe('planned');
+    expect(LEXI_CURRICULUM.levels.B1.status).toBe('available');
+    expect(LEXI_CURRICULUM.levels.C1.status).toBe('planned');
     expect(LEXI_CURRICULUM.levels.C2.status).toBe('planned');
   });
 

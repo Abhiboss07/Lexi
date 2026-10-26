@@ -1,6 +1,7 @@
 import { LEXI_CURRICULUM } from '../data/curriculum';
 import type { CEFRLevel } from '../types/curriculum';
 import type { PracticeCategoryKey } from '../components/practice/PracticeModals';
+import { CONVERSATION_SCENARIOS_DATA } from '../data/conversationScenariosData';
 
 export interface CurriculumSearchResult {
   id: string;
@@ -28,6 +29,13 @@ const STUDIOS_CATALOG: Array<{
     category: 'Speaking Studio',
     subtitle: 'Practice real-time spoken dialogue with supportive AI personas',
     keywords: ['conversation', 'chat', 'talk', 'speaking', 'speech', 'dialogue', 'fluency'],
+  },
+  {
+    key: 'speaking',
+    title: 'Speaking & Pronunciation Studio',
+    category: 'Speaking Studio',
+    subtitle: 'Practice rhythm, intonation models, and local speech recognition feedback',
+    keywords: ['speaking', 'pronunciation', 'accent', 'phonetics', 'voice', 'fluency', 'rhythm', 'intonation'],
   },
   {
     key: 'stories',
@@ -144,8 +152,30 @@ export function searchCurriculum(query: string, maxResults = 8): CurriculumSearc
     }
   }
 
+  // 1b. Search Conversation Coach Scenarios
+  for (const scenario of CONVERSATION_SCENARIOS_DATA) {
+    if (
+      scenario.title.toLowerCase().includes(q) ||
+      scenario.partner.toLowerCase().includes(q) ||
+      scenario.partnerRole.toLowerCase().includes(q) ||
+      scenario.categoryLabel.toLowerCase().includes(q) ||
+      scenario.vocabularyToLearn.some((v) => v.word.toLowerCase().includes(q))
+    ) {
+      results.push({
+        id: `scenario-${scenario.id}`,
+        type: 'studio',
+        title: `Dialogue: ${scenario.title}`,
+        subtitle: `Conversation practice with ${scenario.partner} (${scenario.partnerRole})`,
+        category: `Conversation • ${scenario.categoryLabel}`,
+        levelBadge: scenario.cefrLevel,
+        studioKey: 'conversation',
+      });
+    }
+  }
+
   // 2. Search Curriculum Lessons
   for (const lesson of Object.values(LEXI_CURRICULUM.lessons)) {
+    const idMatch = lesson.id.toLowerCase().includes(q);
     const titleMatch = lesson.title.toLowerCase().includes(q);
     const subtitleMatch = lesson.subtitle ? lesson.subtitle.toLowerCase().includes(q) : false;
     const descMatch = lesson.description.toLowerCase().includes(q);
@@ -156,7 +186,7 @@ export function searchCurriculum(query: string, maxResults = 8): CurriculumSearc
       (g) => g.topic.toLowerCase().includes(q) || g.ruleSummary.toLowerCase().includes(q)
     );
 
-    if (titleMatch || subtitleMatch || descMatch || vocabMatch || grammarMatch) {
+    if (idMatch || titleMatch || subtitleMatch || descMatch || vocabMatch || grammarMatch) {
       const unit = LEXI_CURRICULUM.units[lesson.unitId];
       const categoryLabel = unit ? `${lesson.level} • ${unit.title}` : `${lesson.level} Lesson`;
       results.push({
