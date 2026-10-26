@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useDeferredValue, lazy, Suspense } from 'react';
 import { 
   BookOpen, 
   Search, 
   Sparkles, 
   Sliders,
-  AlertCircle
+  AlertCircle,
+  Award,
 } from 'lucide-react';
 import type { VocabularyCardRecord, VocabularyStats } from '../../types/vocabulary';
 import type { PracticePreferences } from '../../types/practicePreferences';
@@ -14,8 +15,10 @@ import { VocabularyCardItem } from '../vocabulary/VocabularyCardItem';
 import { isCardDue } from '../../services/fsrsScheduler';
 import { PracticeHeroCard } from './PracticeHeroCard';
 import type { PracticeCategoryKey } from './PracticeCategoryNav';
-import { PracticeModal } from './PracticeModals';
-import { PracticePreferencesModal } from './PracticePreferencesModal';
+
+const PracticeModal = lazy(() => import('./PracticeModals').then(m => ({ default: m.PracticeModal })));
+const PracticePreferencesModal = lazy(() => import('./PracticePreferencesModal').then(m => ({ default: m.PracticePreferencesModal })));
+const PlacementAssessmentModal = lazy(() => import('../assessment/PlacementAssessmentModal').then(m => ({ default: m.PlacementAssessmentModal })));
 
 export interface PracticeScreenProps {
   userId?: string;
@@ -39,8 +42,11 @@ export const PracticeScreen: React.FC<PracticeScreenProps> = ({
   const [activePracticeModal, setActivePracticeModal] = useState<PracticeCategoryKey | null>(null);
   const [preferences, setPreferences] = useState<PracticePreferences | null>(null);
   const [isPrefsOpen, setIsPrefsOpen] = useState(false);
+  const [isPlacementOpen, setIsPlacementOpen] = useState(false);
 
-  // Load cards, statistics, and practice preferences from repository
+  const deferredSearchQuery = useDeferredValue(searchQuery);
+
+  // Load cards, statistics, and practice preferences from repository with unmount guard
   const loadData = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -62,12 +68,36 @@ export const PracticeScreen: React.FC<PracticeScreenProps> = ({
   }, [userId]);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    let isMounted = true;
+    (async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const [allCards, deckStats, userPrefs] = await Promise.all([
+          vocabularyRepository.getCards(userId),
+          vocabularyRepository.getStats(userId),
+          practiceRepository.getPreferences(userId),
+        ]);
+        if (!isMounted) return;
+        setCards(allCards);
+        setStats(deckStats);
+        setPreferences(userPrefs);
+      } catch (err) {
+        if (!isMounted) return;
+        console.error('Error loading practice data:', err);
+        setError('Could not load your vocabulary notebook. Please try again.');
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, [userId]);
 
-  // Filtered & searched cards
+  // Filtered & searched cards using deferred query for 60fps typing
   const filteredCards = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
+    const q = deferredSearchQuery.trim().toLowerCase();
     const now = new Date();
 
     return cards.filter((card) => {
@@ -99,7 +129,7 @@ export const PracticeScreen: React.FC<PracticeScreenProps> = ({
           return true;
       }
     });
-  }, [cards, searchQuery, activeFilter]);
+  }, [cards, deferredSearchQuery, activeFilter]);
 
   const dueCards = useMemo(() => {
     const now = new Date();
@@ -150,6 +180,15 @@ export const PracticeScreen: React.FC<PracticeScreenProps> = ({
 
       {/* 3. Dedicated Skill Studios Quick Access */}
       <div className="flex items-center gap-1.5 pt-0.5 px-0.5 overflow-x-auto no-scrollbar pb-1 -mb-1">
+        <button
+          type="button"
+          onClick={() => setIsPlacementOpen(true)}
+          className="px-3 py-1 rounded-full bg-[#EEF2FF] border border-[#CCD1F0] text-[#4F46E5] text-[11.5px] font-extrabold hover:bg-[#E0E7FF] transition-colors cursor-pointer shadow-xs shrink-0 flex items-center gap-1"
+          aria-label="Open CEFR placement test"
+        >
+          <Award className="w-3.5 h-3.5 text-[#4F46E5]" />
+          <span>Placement Test</span>
+        </button>
         <span className="text-[11px] font-bold text-[#8E93B8] uppercase tracking-wider shrink-0 mr-0.5">
           Studios:
         </span>
@@ -166,6 +205,13 @@ export const PracticeScreen: React.FC<PracticeScreenProps> = ({
           className="px-3 py-1 rounded-full bg-white border border-[#ECEEFE] text-[#15164B] text-[11.5px] font-bold hover:bg-[#F0F2FD] transition-colors cursor-pointer shadow-xs shrink-0"
         >
           Conversation
+        </button>
+        <button
+          type="button"
+          onClick={() => setActivePracticeModal('speaking')}
+          className="px-3 py-1 rounded-full bg-white border border-[#ECEEFE] text-[#15164B] text-[11.5px] font-bold hover:bg-[#F0F2FD] transition-colors cursor-pointer shadow-xs shrink-0"
+        >
+          Speaking
         </button>
         <button
           type="button"
@@ -263,21 +309,23 @@ export const PracticeScreen: React.FC<PracticeScreenProps> = ({
 
         {/* Search Bar */}
         <div className="relative">
-          <Search className="w-4 h-4 text-[#8E93B8] absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[#8E93B8] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search words, meanings, or topics..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-white border border-[#ECEEFE] text-[13px] text-[#222149] placeholder-[#8E93B8] focus:outline-hidden focus:border-[#545CA6] shadow-xs"
+            className="w-full pl-10 pr-9 py-2.5 rounded-full bg-white border border-[#E4E7F7] text-[13px] text-[#15164B] placeholder:text-[#8E93B8] focus:border-[#545CA6] focus:ring-2 focus:ring-[#545CA6]/20 shadow-xs transition-all outline-none"
+            aria-label="Search vocabulary"
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-[#8E93B8] hover:text-[#222149] cursor-pointer"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-full bg-[#EFF1FE] text-[#545CA6] hover:bg-[#E0E4FC] transition-colors cursor-pointer text-xs font-bold"
+              aria-label="Clear search"
             >
-              Clear
+              ✕
             </button>
           )}
         </div>
@@ -382,25 +430,49 @@ export const PracticeScreen: React.FC<PracticeScreenProps> = ({
       </section>
 
       {/* 5. Dedicated Practice Modals (Conversation, Stories, Grammar, Listening) */}
-      <PracticeModal
-        category={activePracticeModal}
-        userId={userId}
-        initialDifficulty={preferences?.defaultDifficulty}
-        initialSessionLength={preferences?.defaultSessionLength}
-        onClose={() => {
-          setActivePracticeModal(null);
-          loadData();
-        }}
-        onNavigateToExplore={onExploreLessons}
-      />
+      <Suspense fallback={null}>
+        {Boolean(activePracticeModal) && (
+          <PracticeModal
+            category={activePracticeModal}
+            userId={userId}
+            initialDifficulty={preferences?.defaultDifficulty}
+            initialSessionLength={preferences?.defaultSessionLength}
+            onClose={() => {
+              setActivePracticeModal(null);
+              loadData();
+            }}
+            onNavigateToExplore={onExploreLessons}
+          />
+        )}
 
-      {/* 6. Practice Preferences Modal (Difficulty, Goals, Session Length) */}
-      <PracticePreferencesModal
-        userId={userId}
-        isOpen={isPrefsOpen}
-        onClose={() => setIsPrefsOpen(false)}
-        onSaved={(updated) => setPreferences(updated)}
-      />
+        {/* 6. Practice Preferences Modal (Difficulty, Goals, Session Length) */}
+        {isPrefsOpen && (
+          <PracticePreferencesModal
+            userId={userId}
+            isOpen={isPrefsOpen}
+            onClose={() => setIsPrefsOpen(false)}
+            onSaved={(updated) => setPreferences(updated)}
+          />
+        )}
+
+        {/* 7. CEFR Placement & Skill Assessment Modal */}
+        {isPlacementOpen && (
+          <PlacementAssessmentModal
+            isOpen={isPlacementOpen}
+            userId={userId}
+            currentLevel={preferences?.cefrLevel || 'A1'}
+            onClose={() => {
+              setIsPlacementOpen(false);
+              loadData();
+            }}
+            onLevelUpdated={(newLevel) => {
+              if (preferences) {
+                setPreferences({ ...preferences, cefrLevel: newLevel });
+              }
+            }}
+          />
+        )}
+      </Suspense>
     </div>
   );
 };

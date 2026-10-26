@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useDeferredValue } from 'react';
 import { Search, Compass } from 'lucide-react';
 import { ContinueJourneyCard } from './ContinueJourneyCard';
 import { AdventureFilterBar } from './AdventureFilterBar';
@@ -32,6 +32,7 @@ export const ExploreScreen: React.FC<ExploreScreenProps> = ({
   onOpenCurriculumBrowser,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const deferredSearchQuery = useDeferredValue(searchQuery);
   const [selectedCategory, setSelectedCategory] = useState<AdventureCategory>('All');
 
   // Filtered adventure scenarios based on category pill
@@ -44,7 +45,7 @@ export const ExploreScreen: React.FC<ExploreScreenProps> = ({
 
   // Combined search results across all modules
   const searchResults = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
+    const q = deferredSearchQuery.trim().toLowerCase();
     if (!q) return [];
 
     const list: Array<{
@@ -131,7 +132,7 @@ export const ExploreScreen: React.FC<ExploreScreenProps> = ({
     }
 
     return list;
-  }, [searchQuery]);
+  }, [deferredSearchQuery]);
 
   const handleSelectScenario = (scenario: AdventureScenario) => {
     onOpenActivity({
@@ -183,19 +184,20 @@ export const ExploreScreen: React.FC<ExploreScreenProps> = ({
 
         {/* Integrated Search Input */}
         <div className="relative">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#787DAB]" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#787DAB] pointer-events-none" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search topics, grammar, phrases..."
-            className="w-full pl-10 pr-9 py-2.5 rounded-full bg-white border border-[#E4E7F7] text-[13px] text-[#15164B] placeholder:text-[#8E93B8] focus:outline-hidden focus:ring-2 focus:ring-[#545CA6]/40 focus:border-[#545CA6] shadow-xs transition-all"
+            className="w-full pl-10 pr-9 py-2.5 rounded-full bg-white border border-[#E4E7F7] text-[13px] text-[#15164B] placeholder:text-[#8E93B8] focus:border-[#545CA6] focus:ring-2 focus:ring-[#545CA6]/20 shadow-xs transition-all outline-none"
             aria-label="Search learning content"
           />
           {searchQuery && (
             <button
+              type="button"
               onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-full bg-[#E2E4F8] text-[#545CA6] hover:bg-[#D4D8F4] text-xs font-bold cursor-pointer"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-full bg-[#EFF1FE] text-[#545CA6] hover:bg-[#E0E4FC] transition-colors cursor-pointer text-xs font-bold"
               aria-label="Clear search"
             >
               ✕

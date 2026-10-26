@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef, lazy, Suspense } from 'react';
 import { 
   TrendingUp, 
   Sparkles, 
@@ -16,7 +16,9 @@ import {
   BarChart2,
   Calendar,
   ChevronRight,
-  ShieldCheck
+  ShieldCheck,
+  Mic,
+  X,
 } from 'lucide-react';
 import type { PracticeCategoryKey } from '../practice/PracticeCategoryNav';
 import type { PracticePreferences, PracticeSessionRecord } from '../../types/practicePreferences';
@@ -33,7 +35,12 @@ import { LEXI_CURRICULUM } from '../../data/curriculum';
 import { calculateAchievements } from '../../services/achievementService';
 import { adaptiveLearningService } from '../../services/adaptiveLearningService';
 import type { AdaptiveLearnerProfile, DailyStudyPlanRecord } from '../../types/adaptivePlan';
-import { AchievementsModal } from '../modals/AchievementsModal';
+import { mistakeTrackingService } from '../../services/mistakeTrackingService';
+import type { LearnerMistakeRecord } from '../../types/conversationCoach';
+import { getAssetPath } from '../../utils/assetPath';
+
+const AchievementsModal = lazy(() => import('../modals/AchievementsModal').then(m => ({ default: m.AchievementsModal })));
+const PlacementAssessmentModal = lazy(() => import('../assessment/PlacementAssessmentModal').then(m => ({ default: m.PlacementAssessmentModal })));
 
 export interface ProgressDashboardScreenProps {
   userId?: string;
@@ -64,12 +71,25 @@ export const ProgressDashboardScreen: React.FC<ProgressDashboardScreenProps> = (
   const [quickNotes, setQuickNotes] = useState<QuickNote[]>([]);
   const [adaptiveProfile, setAdaptiveProfile] = useState<AdaptiveLearnerProfile | null>(null);
   const [dailyPlan, setDailyPlan] = useState<DailyStudyPlanRecord | null>(null);
+  const [mistakeRecords, setMistakeRecords] = useState<LearnerMistakeRecord[]>([]);
+  const [inspectedMistake, setInspectedMistake] = useState<LearnerMistakeRecord | null>(null);
   const [isAchievementsModalOpen, setIsAchievementsModalOpen] = useState<boolean>(false);
+  const [isPlacementModalOpen, setIsPlacementModalOpen] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const isMountedRef = useRef<boolean>(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const loadProgressData = useCallback(async () => {
     try {
-      setIsLoading(true);
+      if (!curriculumProgress) {
+        setIsLoading(true);
+      }
       const [
         userPrefs, 
         currState, 
@@ -81,6 +101,7 @@ export const ProgressDashboardScreen: React.FC<ProgressDashboardScreenProps> = (
         notes,
         adProfile,
         dPlan,
+        uMistakes,
       ] = await Promise.all([
         practiceRepository.getPreferences(userId),
         curriculumRepository.getLearnerProgress(userId),
@@ -92,7 +113,10 @@ export const ProgressDashboardScreen: React.FC<ProgressDashboardScreenProps> = (
         quickPicksRepository.getNotes(userId),
         adaptiveLearningService.buildAdaptiveProfile(userId),
         adaptiveLearningService.getDailyStudyPlan(userId),
+        mistakeTrackingService.getAllMistakes(userId),
       ]);
+
+      if (!isMountedRef.current) return;
 
       setPreferences(userPrefs);
       setCurriculumProgress(currState);
@@ -104,12 +128,17 @@ export const ProgressDashboardScreen: React.FC<ProgressDashboardScreenProps> = (
       setQuickNotes(notes || []);
       setAdaptiveProfile(adProfile);
       setDailyPlan(dPlan);
+      setMistakeRecords(uMistakes || []);
     } catch (err) {
-      console.error('Failed to load progress dashboard data:', err);
+      if (isMountedRef.current) {
+        console.error('Failed to load progress dashboard data:', err);
+      }
     } finally {
-      setIsLoading(false);
+      if (isMountedRef.current) {
+        setIsLoading(false);
+      }
     }
-  }, [userId]);
+  }, [userId, curriculumProgress]);
 
   useEffect(() => {
     loadProgressData();
@@ -154,6 +183,7 @@ export const ProgressDashboardScreen: React.FC<ProgressDashboardScreenProps> = (
   const studioAverages = useMemo(() => {
     const config = {
       conversation: { label: 'Conversation', icon: MessageCircle, color: 'text-[#2563EB]', bg: 'bg-[#EFF6FF]' },
+      speaking: { label: 'Speaking', icon: Mic, color: 'text-[#E11D48]', bg: 'bg-[#FFE4E6]' },
       stories: { label: 'Stories', icon: BookOpen, color: 'text-[#C026D3]', bg: 'bg-[#FDF4FF]' },
       vocabulary: { label: 'Vocabulary', icon: Sparkles, color: 'text-[#059669]', bg: 'bg-[#ECFDF5]' },
       grammar: { label: 'Grammar', icon: FileText, color: 'text-[#D97706]', bg: 'bg-[#FFFBEB]' },
@@ -200,7 +230,7 @@ export const ProgressDashboardScreen: React.FC<ProgressDashboardScreenProps> = (
     return 85; // Baseline index for new learners
   }, [adaptiveProfile, sessions]);
 
-  if (isLoading) {
+  if (isLoading && !curriculumProgress) {
     return (
       <div className="py-16 text-center space-y-3">
         <div className="w-10 h-10 border-3 border-[#545CA6] border-t-transparent rounded-full animate-spin mx-auto" />
@@ -213,36 +243,45 @@ export const ProgressDashboardScreen: React.FC<ProgressDashboardScreenProps> = (
     <div className="space-y-5 pb-8" aria-label="Progress & Analytics Dashboard">
       
       {/* 1. Header */}
-      <header className="flex items-center justify-between pt-1 gap-2">
-        <div className="space-y-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <h1 className="text-[22px] xs:text-[24px] font-black text-[#15164B] tracking-tight">
-              Progress & Insights
-            </h1>
-            <TrendingUp className="w-5 h-5 text-[#545CA6] stroke-[2.4]" />
-            <span className="px-2.5 py-0.5 rounded-full bg-[#15164B] text-white text-[11px] font-extrabold uppercase tracking-wider shadow-xs">
-              CEFR {curriculumProgress?.currentLevel || 'A2'}
-            </span>
-          </div>
-          <p className="text-[12px] xs:text-[12.5px] font-medium text-[#6B7094]">
-            Personalized Fluency Analytics • Goal Tracking • AI Diagnostics
+      <header className="flex items-start justify-between pt-1 gap-2 xs:gap-2.5">
+        <div className="space-y-1 min-w-0 flex-1">
+          <h1 className="text-[22px] xs:text-[24px] font-black text-[#15164B] tracking-tight leading-tight">
+            <span className="whitespace-nowrap">Progress &amp;</span> Insights
+          </h1>
+          <p className="text-[12px] xs:text-[12.5px] font-medium text-[#6B7094] leading-snug">
+            Personalized Fluency Analytics • Goal Tracking • <span className="whitespace-nowrap">AI Diagnostics</span>
           </p>
         </div>
 
-        {/* Milestones & Badges Trigger */}
-        <button
-          type="button"
-          onClick={() => setIsAchievementsModalOpen(true)}
-          className="px-3 py-1.5 rounded-2xl bg-white border border-[#CCD1F0] hover:bg-[#EEF1FB] text-[#15164B] text-[11.5px] font-bold shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer shrink-0"
-          aria-label="Open milestones and badges modal"
-        >
-          <Award className="w-4 h-4 text-[#D97706]" />
-          <span className="hidden xs:inline">Milestones & Badges</span>
-          <span className="xs:hidden">Badges</span>
-          <span className="px-1.5 py-0.2 rounded-md bg-[#EEF2FF] text-[#4F46E5] text-[10.5px] font-extrabold">
-            {achievementsSummary.unlockedBadgesCount}
-          </span>
-        </button>
+        {/* Level & Milestones Right Group (Symmetric Two-Tier Stack) */}
+        <div className="flex flex-col items-end gap-1.5 shrink-0 pt-1.5">
+          {/* CEFR Level Pill Badge (positioned above Milestones & Badges, opens placement assessment) */}
+          <button
+            type="button"
+            onClick={() => setIsPlacementModalOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1 min-h-[28px] rounded-full bg-[#15164B] hover:bg-[#25286D] text-white text-[10.5px] xs:text-[11px] font-extrabold uppercase tracking-wider shadow-xs transition-colors cursor-pointer"
+            title="Click to take CEFR placement test"
+            aria-label="Calibrate CEFR level with placement assessment"
+          >
+            <TrendingUp className="w-3 h-3 text-[#A5B4FC] stroke-[2.5]" />
+            <span>CEFR {curriculumProgress?.currentLevel || 'A2'}</span>
+          </button>
+
+          {/* Milestones & Badges Trigger */}
+          <button
+            type="button"
+            onClick={() => setIsAchievementsModalOpen(true)}
+            className="px-2.5 xs:px-3 py-1.5 rounded-2xl bg-white border border-[#CCD1F0] hover:bg-[#EEF1FB] text-[#15164B] text-[11px] xs:text-[11.5px] font-bold shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+            aria-label="Open milestones and badges modal"
+          >
+            <Award className="w-3.5 h-3.5 text-[#D97706] shrink-0" />
+            <span className="hidden xs:inline">Milestones & Badges</span>
+            <span className="xs:hidden">Badges</span>
+            <span className="px-1.5 py-0.2 rounded-md bg-[#EEF2FF] text-[#4F46E5] text-[10px] xs:text-[10.5px] font-extrabold shrink-0">
+              {achievementsSummary.unlockedBadgesCount}
+            </span>
+          </button>
+        </div>
       </header>
 
       {/* 2. Premium Editorial Progress Hero Card */}
@@ -293,7 +332,7 @@ export const ProgressDashboardScreen: React.FC<ProgressDashboardScreenProps> = (
           {/* Right 3D Character Illustration */}
           <div className="relative shrink-0 w-[125px] xs:w-[145px] sm:w-[165px] self-end flex items-end justify-center pointer-events-none select-none">
             <img
-              src="/assets/progress-hero-character-transparent.png"
+              src={getAssetPath('/assets/progress-hero-character-transparent.png')}
               alt="3D digital illustration of a student with digital tablet and notebook reviewing language milestones"
               className="w-full h-auto max-h-[190px] xs:max-h-[215px] sm:max-h-[230px] object-contain transition-transform duration-300"
               loading="eager"
@@ -383,7 +422,7 @@ export const ProgressDashboardScreen: React.FC<ProgressDashboardScreenProps> = (
             <button
               type="button"
               onClick={() => setIsAchievementsModalOpen(true)}
-              className="text-[11.5px] font-bold text-[#4F46E5] hover:underline cursor-pointer flex items-center gap-0.5"
+              className="text-[11.5px] font-bold text-[#4F46E5] hover:underline cursor-pointer inline-flex items-center gap-0.5 min-h-[30px] px-2 -my-1"
               aria-label="View CEFR Certificates and Badges"
             >
               <span>Certificates</span>
@@ -403,7 +442,7 @@ export const ProgressDashboardScreen: React.FC<ProgressDashboardScreenProps> = (
         </div>
 
         {/* Next Recommended Lesson CTA */}
-        <div className="p-3.5 rounded-2xl bg-[#FAF9FE] border border-[#E0E3F5] flex items-center justify-between gap-3">
+        <div className="p-3.5 rounded-2xl bg-[#F8F9FE] flex items-center justify-between gap-3">
           <div className="space-y-0.5 min-w-0">
             <span className="text-[10px] font-extrabold uppercase text-[#545CA6] tracking-wider block">
               Up Next in Curriculum:
@@ -422,6 +461,27 @@ export const ProgressDashboardScreen: React.FC<ProgressDashboardScreenProps> = (
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           )}
+        </div>
+
+        {/* Placement Assessment Pathway Calibration */}
+        <div className="p-3 rounded-2xl bg-[#EEF2FF] flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-xl bg-white text-[#4F46E5] flex items-center justify-center shrink-0 shadow-2xs">
+              <Sparkles className="w-4 h-4 stroke-[2.4]" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[12px] font-black text-[#15164B] truncate">Calibrate Your English Level</p>
+              <p className="text-[10.5px] font-medium text-[#545CA6] truncate">5-minute multi-skill diagnostic placement test</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsPlacementModalOpen(true)}
+            className="px-3 py-1.5 rounded-xl bg-[#4F46E5] hover:bg-[#4338CA] text-white text-[11px] font-extrabold shrink-0 shadow-xs transition-colors cursor-pointer"
+            aria-label="Start CEFR Placement Test"
+          >
+            Take Test
+          </button>
         </div>
       </section>
 
@@ -485,25 +545,32 @@ export const ProgressDashboardScreen: React.FC<ProgressDashboardScreenProps> = (
         aria-label="Adaptive Learning Intelligence" 
         className="p-4 sm:p-5 rounded-3xl bg-white border border-[#ECEEFE] shadow-xs space-y-4"
       >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-2xl bg-[#EEF2FF] text-[#4F46E5] flex items-center justify-center">
+        <div className="flex items-center justify-between gap-2.5">
+          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+            <div className="w-9 h-9 rounded-2xl bg-[#EEF2FF] text-[#4F46E5] flex items-center justify-center shrink-0">
               <Sparkles className="w-5 h-5 stroke-[2.4]" />
             </div>
-            <div>
-              <h2 className="text-[15px] font-black text-[#15164B]">
+            <div className="min-w-0">
+              <h2 className="text-[14.5px] sm:text-[15px] font-black text-[#15164B] truncate">
                 Adaptive Learning Intelligence
               </h2>
-              <p className="text-[11px] font-medium text-[#6B7094]">
+              <p className="text-[10.5px] xs:text-[11px] font-medium text-[#6B7094] truncate">
                 Offline diagnostic feedback & personalized daily plan adaptation
               </p>
             </div>
           </div>
           {adaptiveProfile?.performanceTrend && (
-            <span className="px-2.5 py-1 rounded-full text-[10.5px] font-extrabold uppercase tracking-wider bg-indigo-50 border border-indigo-100 text-[#4F46E5]">
-              {adaptiveProfile.performanceTrend === 'improving' ? '📈 Improving' :
-               adaptiveProfile.performanceTrend === 'declining' ? '🔄 Needs Support' :
-               adaptiveProfile.performanceTrend === 'steady' ? '⚖️ Steady' : '🌱 Baseline'}
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[9.5px] font-extrabold uppercase tracking-wider bg-indigo-50/90 border border-indigo-100 text-[#4F46E5] whitespace-nowrap shrink-0 shadow-2xs">
+              <span className="text-[11px] leading-none">
+                {adaptiveProfile.performanceTrend === 'improving' ? '📈' :
+                 adaptiveProfile.performanceTrend === 'declining' ? '🔄' :
+                 adaptiveProfile.performanceTrend === 'steady' ? '⚖️' : '🌱'}
+              </span>
+              <span>
+                {adaptiveProfile.performanceTrend === 'improving' ? 'Improving' :
+                 adaptiveProfile.performanceTrend === 'declining' ? 'Needs Support' :
+                 adaptiveProfile.performanceTrend === 'steady' ? 'Steady' : 'Baseline'}
+              </span>
             </span>
           )}
         </div>
@@ -567,7 +634,7 @@ export const ProgressDashboardScreen: React.FC<ProgressDashboardScreenProps> = (
 
         {/* How Study Plan Responds */}
         {dailyPlan && (
-          <div className="p-3.5 rounded-2xl bg-[#FAF9FE] border border-[#ECEEFE] space-y-2">
+          <div className="p-3.5 rounded-2xl bg-[#F8F9FE] space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold text-[#15164B]">
                 How Today's Study Plan Adapts to Your Progress
@@ -623,24 +690,24 @@ export const ProgressDashboardScreen: React.FC<ProgressDashboardScreenProps> = (
             </button>
           </div>
 
-          <div className="grid grid-cols-4 gap-2 pt-1 text-center">
-            <div className="p-2 rounded-xl bg-[#FAF9FE] border border-[#ECEEFE] flex flex-col items-center justify-center min-h-[52px]">
+          <div className="grid grid-cols-4 bg-[#F8F9FE] rounded-2xl p-2.5 divide-x divide-[#ECEEFE] text-center">
+            <div className="flex flex-col items-center justify-center px-1">
               <span className="text-[15px] font-black text-[#15164B] leading-none">{vocabStats.totalCards}</span>
-              <span className="text-[8.5px] font-bold text-[#8E93B8] uppercase tracking-tighter leading-tight mt-1 text-center">Total Words</span>
+              <span className="text-[8.5px] font-bold text-[#8E93B8] uppercase tracking-tight mt-1 text-center">Total Words</span>
             </div>
-            <div className="p-2 rounded-xl bg-[#FAF9FE] border border-[#ECEEFE] flex flex-col items-center justify-center min-h-[52px]">
+            <div className="flex flex-col items-center justify-center px-1">
               <span className={`text-[15px] font-black leading-none ${vocabStats.dueCards > 0 ? 'text-[#DC2626]' : 'text-[#059669]'}`}>
                 {vocabStats.dueCards}
               </span>
-              <span className="text-[8.5px] font-bold text-[#8E93B8] uppercase tracking-tighter leading-tight mt-1 text-center">Due Review</span>
+              <span className="text-[8.5px] font-bold text-[#8E93B8] uppercase tracking-tight mt-1 text-center">Due Review</span>
             </div>
-            <div className="p-2 rounded-xl bg-[#FAF9FE] border border-[#ECEEFE] flex flex-col items-center justify-center min-h-[52px]">
+            <div className="flex flex-col items-center justify-center px-1">
               <span className="text-[15px] font-black text-[#D97706] leading-none">{vocabStats.learningCards + vocabStats.newCards}</span>
-              <span className="text-[8.5px] font-bold text-[#8E93B8] uppercase tracking-tighter leading-tight mt-1 text-center">Learning</span>
+              <span className="text-[8.5px] font-bold text-[#8E93B8] uppercase tracking-tight mt-1 text-center">Learning</span>
             </div>
-            <div className="p-2 rounded-xl bg-[#FAF9FE] border border-[#ECEEFE] flex flex-col items-center justify-center min-h-[52px]">
+            <div className="flex flex-col items-center justify-center px-1">
               <span className="text-[15px] font-black text-[#2563EB] leading-none">{vocabStats.reviewCards}</span>
-              <span className="text-[8.5px] font-bold text-[#8E93B8] uppercase tracking-tighter leading-tight mt-1 text-center">Mastered</span>
+              <span className="text-[8.5px] font-bold text-[#8E93B8] uppercase tracking-tight mt-1 text-center">Mastered</span>
             </div>
           </div>
         </section>
@@ -648,88 +715,144 @@ export const ProgressDashboardScreen: React.FC<ProgressDashboardScreenProps> = (
 
       {/* 6. AI Diagnostic Error Pattern Tracker */}
       <section aria-label="AI Diagnostics & Friction Points" className="space-y-2.5">
-        <div className="flex items-center justify-between px-0.5">
-          <div className="flex items-center gap-1.5">
-            <h2 className="text-[15px] font-black text-[#15164B] tracking-tight">
+        <div className="flex flex-wrap items-center justify-between gap-y-1.5 gap-x-2 px-0.5">
+          <div className="flex items-center gap-2 flex-wrap min-w-0">
+            <h2 className="text-[14px] xs:text-[14.5px] sm:text-[15px] font-black text-[#15164B] tracking-tight whitespace-nowrap">
               AI Error Pattern Diagnostics
             </h2>
-            <span className="text-[10px] font-black uppercase tracking-wider bg-[#EFF6FF] text-[#2563EB] px-2 py-0.5 rounded-full border border-[#BFDBFE]">
+            <span className="inline-flex items-center text-[9px] xs:text-[9.5px] font-bold uppercase tracking-wider bg-[#EFF6FF] text-[#2563EB] px-2 py-0.5 rounded-full border border-[#BFDBFE] whitespace-nowrap shrink-0">
               Targeted Focus
             </span>
           </div>
-          <span className="text-[11px] font-medium text-[#6B7094]">
+          <span className="text-[10px] xs:text-[11px] font-medium text-[#6B7094] whitespace-nowrap shrink-0">
             Continuous Analysis
           </span>
         </div>
 
-        <div className="space-y-2">
-          {/* Pattern 1 */}
-          <div className="p-3.5 rounded-2xl bg-white border border-[#ECEEFE] flex items-center justify-between gap-3 shadow-xs">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-8 h-8 rounded-xl bg-[#FEF2F2] text-[#DC2626] flex items-center justify-center shrink-0">
-                <AlertCircle className="w-4 h-4" />
-              </div>
-              <div className="min-w-0">
-                <h3 className="text-[12.5px] font-bold text-[#15164B] truncate">
-                  Prepositions of Time (<code className="text-[#DC2626]">at / in / on</code>)
-                </h3>
-                <p className="text-[11px] text-[#6B7094] truncate">
-                  Accuracy: 74% • Tends to confuse "at night" with "in night"
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => onOpenStudio('grammar')}
-              className="px-3 py-1 rounded-full bg-[#FFFBEB] text-[#D97706] hover:bg-[#FDE68A] text-[11px] font-extrabold cursor-pointer shrink-0 transition-colors"
-            >
-              Fix in Grammar
-            </button>
-          </div>
+        <div className="rounded-3xl bg-white border border-[#ECEEFE] shadow-xs divide-y divide-[#ECEEFE] overflow-hidden">
+          {mistakeRecords.length > 0 ? (
+            mistakeRecords.map((m) => (
+              <div 
+                key={m.id}
+                className="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-[#FAF9FE] transition-colors"
+              >
+                <div className="flex items-start gap-3 min-w-0">
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
+                    m.isPersistent ? 'bg-[#FEF2F2] text-[#DC2626]' : 'bg-[#EFF6FF] text-[#2563EB]'
+                  }`}>
+                    {m.isPersistent ? <AlertCircle className="w-4 h-4" /> : <Clock className="w-4 h-4" />}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="text-[12.5px] font-bold text-[#15164B]">
+                        {m.title}
+                      </h3>
+                      <span className={`text-[9.5px] font-extrabold uppercase px-1.5 py-0.2 rounded-md ${
+                        m.isPersistent 
+                          ? 'bg-[#FEE2E2] text-[#991B1B]' 
+                          : 'bg-[#EFF6FF] text-[#1D4ED8]'
+                      }`}>
+                        {m.isPersistent ? `Recurring (${m.frequency}x)` : `Seen ${m.frequency}x`}
+                      </span>
+                    </div>
+                    {m.occurrences[0] && (
+                      <p className="text-[11px] text-[#6B7094] truncate mt-0.5">
+                        <span className="line-through text-[#DC2626] mr-1.5">{m.occurrences[0].originalSentence}</span>
+                        <span className="text-[#059669] font-medium">{m.occurrences[0].correctedSentence}</span>
+                      </p>
+                    )}
+                  </div>
+                </div>
 
-          {/* Pattern 2 */}
-          <div className="p-3.5 rounded-2xl bg-white border border-[#ECEEFE] flex items-center justify-between gap-3 shadow-xs">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-8 h-8 rounded-xl bg-[#EFF6FF] text-[#2563EB] flex items-center justify-center shrink-0">
-                <Clock className="w-4 h-4" />
+                <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={() => setInspectedMistake(m)}
+                    className="px-2.5 py-1 rounded-full border border-[#D5D8EE] text-[#545CA6] hover:bg-[#F0F2FD] text-[10.5px] font-extrabold transition-colors cursor-pointer"
+                  >
+                    Inspect Feedback
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onOpenStudio(m.recommendedPracticeStudio)}
+                    className="px-3 py-1 rounded-full bg-[#15164B] hover:bg-[#0E1038] text-white text-[10.5px] font-extrabold transition-colors cursor-pointer shadow-xs"
+                  >
+                    {m.recommendedPracticeStudio === 'grammar' ? 'Fix in Grammar' : 'Talk with AI'}
+                  </button>
+                </div>
               </div>
-              <div className="min-w-0">
-                <h3 className="text-[12.5px] font-bold text-[#15164B] truncate">
-                  Past Simple vs Continuous Transitions
-                </h3>
-                <p className="text-[11px] text-[#6B7094] truncate">
-                  Accuracy: 84% • Consistent structure, needs practice on background clauses
-                </p>
+            ))
+          ) : (
+            <>
+              {/* Pattern 1 */}
+              <div className="p-3.5 flex items-center justify-between gap-3 hover:bg-[#FAF9FE] transition-colors">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-[#FEF2F2] text-[#DC2626] flex items-center justify-center shrink-0">
+                    <AlertCircle className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-[12.5px] font-bold text-[#15164B] truncate">
+                      Prepositions of Time (<code className="text-[#DC2626]">at / in / on</code>)
+                    </h3>
+                    <p className="text-[11px] text-[#6B7094] truncate">
+                      Accuracy: 74% • Tends to confuse "at night" with "in night"
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onOpenStudio('grammar')}
+                  className="px-3 py-1 rounded-full bg-[#FFFBEB] text-[#D97706] hover:bg-[#FDE68A] text-[11px] font-extrabold cursor-pointer shrink-0 transition-colors"
+                >
+                  Fix in Grammar
+                </button>
               </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => onOpenStudio('conversation')}
-              className="px-3 py-1 rounded-full bg-[#EFF6FF] text-[#2563EB] hover:bg-[#DBEAFE] text-[11px] font-extrabold cursor-pointer shrink-0 transition-colors"
-            >
-              Talk with AI
-            </button>
-          </div>
 
-          {/* Pattern 3 */}
-          <div className="p-3.5 rounded-2xl bg-white border border-[#ECEEFE] flex items-center justify-between gap-3 shadow-xs">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-8 h-8 rounded-xl bg-[#ECFDF5] text-[#059669] flex items-center justify-center shrink-0">
-                <CheckCircle2 className="w-4 h-4" />
+              {/* Pattern 2 */}
+              <div className="p-3.5 flex items-center justify-between gap-3 hover:bg-[#FAF9FE] transition-colors">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-[#EFF6FF] text-[#2563EB] flex items-center justify-center shrink-0">
+                    <Clock className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-[12.5px] font-bold text-[#15164B] truncate">
+                      Past Simple vs Continuous Transitions
+                    </h3>
+                    <p className="text-[11px] text-[#6B7094] truncate">
+                      Accuracy: 84% • Consistent structure, needs practice on background clauses
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onOpenStudio('conversation')}
+                  className="px-3 py-1 rounded-full bg-[#EFF6FF] text-[#2563EB] hover:bg-[#DBEAFE] text-[11px] font-extrabold cursor-pointer shrink-0 transition-colors"
+                >
+                  Talk with AI
+                </button>
               </div>
-              <div className="min-w-0">
-                <h3 className="text-[12.5px] font-bold text-[#15164B] truncate">
-                  Article Precision (<code className="text-[#059669]">a / an / the / zero</code>)
-                </h3>
-                <p className="text-[11px] text-[#6B7094] truncate">
-                  Accuracy: 92% • Strong mastery across singular and uncountable nouns
-                </p>
+
+              {/* Pattern 3 */}
+              <div className="p-3.5 flex items-center justify-between gap-3 hover:bg-[#FAF9FE] transition-colors">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-[#ECFDF5] text-[#059669] flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-[12.5px] font-bold text-[#15164B] truncate">
+                      Article Precision (<code className="text-[#059669]">a / an / the / zero</code>)
+                    </h3>
+                    <p className="text-[11px] text-[#6B7094] truncate">
+                      Accuracy: 92% • Strong mastery across singular and uncountable nouns
+                    </p>
+                  </div>
+                </div>
+                <span className="text-[11px] font-extrabold text-[#059669] px-2 py-0.5 rounded-full bg-[#ECFDF5]">
+                  Mastered
+                </span>
               </div>
-            </div>
-            <span className="text-[11px] font-extrabold text-[#059669] px-2 py-0.5 rounded-full bg-[#ECFDF5]">
-              Mastered
-            </span>
-          </div>
+            </>
+          )}
         </div>
       </section>
 
@@ -797,48 +920,55 @@ export const ProgressDashboardScreen: React.FC<ProgressDashboardScreenProps> = (
       {/* 8. Personalized Next-Step Action Plan */}
       <section 
         aria-label="Personalized Action Plan"
-        className="p-5 rounded-3xl bg-gradient-to-br from-[#FAF9FE] to-[#F0F2FD] border border-[#D5D8EE] space-y-3"
+        className="p-4 sm:p-5 rounded-3xl bg-white border border-[#ECEEFE] shadow-xs space-y-3"
       >
         <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-[#545CA6]" />
-          <h2 className="text-[14px] font-black text-[#15164B]">
-            Recommended Learning Next Steps
-          </h2>
+          <div className="w-8 h-8 rounded-xl bg-[#EEF2FF] text-[#4F46E5] flex items-center justify-center shrink-0">
+            <Sparkles className="w-4 h-4 stroke-[2.4]" />
+          </div>
+          <div>
+            <h2 className="text-[14px] xs:text-[14.5px] font-black text-[#15164B]">
+              Recommended Learning Next Steps
+            </h2>
+            <p className="text-[10.5px] text-[#6B7094]">
+              High-impact actions prioritized by your recent performance
+            </p>
+          </div>
         </div>
 
-        <ul className="space-y-2 text-[12px]">
-          <li className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-[#ECEEFE]">
-            <span className="font-medium text-[#15164B]">
+        <ul className="rounded-2xl border border-[#ECEEFE] overflow-hidden divide-y divide-[#ECEEFE] bg-[#FAFAFE] text-[12px]">
+          <li className="flex items-center justify-between p-3 bg-white hover:bg-[#FAF9FE] transition-colors gap-2">
+            <span className="font-medium text-[#15164B] min-w-0 text-[11.5px] xs:text-[12px]">
               1. Review {vocabStats?.dueCards || 0} due cards in your FSRS memory deck
             </span>
             <button
               type="button"
               onClick={onNavigateToPractice}
-              className="text-[#545CA6] font-bold hover:underline cursor-pointer"
+              className="px-3 py-1 rounded-full bg-[#EFF2FE] text-[#545CA6] font-bold hover:bg-[#E3E7FC] transition-colors min-h-[30px] inline-flex items-center shrink-0 cursor-pointer text-[11px]"
             >
               Review
             </button>
           </li>
-          <li className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-[#ECEEFE]">
-            <span className="font-medium text-[#15164B]">
+          <li className="flex items-center justify-between p-3 bg-white hover:bg-[#FAF9FE] transition-colors gap-2">
+            <span className="font-medium text-[#15164B] min-w-0 text-[11.5px] xs:text-[12px]">
               2. Tackle prepositions in Grammar Studio to improve 74% accuracy
             </span>
             <button
               type="button"
               onClick={() => onOpenStudio('grammar')}
-              className="text-[#545CA6] font-bold hover:underline cursor-pointer"
+              className="px-3 py-1 rounded-full bg-[#EFF2FE] text-[#545CA6] font-bold hover:bg-[#E3E7FC] transition-colors min-h-[30px] inline-flex items-center shrink-0 cursor-pointer text-[11px]"
             >
               Start
             </button>
           </li>
-          <li className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-[#ECEEFE]">
-            <span className="font-medium text-[#15164B]">
+          <li className="flex items-center justify-between p-3 bg-white hover:bg-[#FAF9FE] transition-colors gap-2">
+            <span className="font-medium text-[#15164B] min-w-0 text-[11.5px] xs:text-[12px]">
               3. Practice STAR structured answering for your next job interview
             </span>
             <button
               type="button"
               onClick={() => onOpenStudio('interview')}
-              className="text-[#545CA6] font-bold hover:underline cursor-pointer"
+              className="px-3 py-1 rounded-full bg-[#EFF2FE] text-[#545CA6] font-bold hover:bg-[#E3E7FC] transition-colors min-h-[30px] inline-flex items-center shrink-0 cursor-pointer text-[11px]"
             >
               Practice
             </button>
@@ -847,13 +977,111 @@ export const ProgressDashboardScreen: React.FC<ProgressDashboardScreenProps> = (
       </section>
 
       {/* 9. Interactive Achievements & Offline Backup Dialog */}
-      <AchievementsModal
-        isOpen={isAchievementsModalOpen}
-        onClose={() => setIsAchievementsModalOpen(false)}
-        userId={userId}
-        summary={achievementsSummary}
-        onRefresh={loadProgressData}
-      />
+      <Suspense fallback={null}>
+        {isAchievementsModalOpen && (
+          <AchievementsModal
+            isOpen={isAchievementsModalOpen}
+            onClose={() => setIsAchievementsModalOpen(false)}
+            userId={userId}
+            summary={achievementsSummary}
+            onRefresh={loadProgressData}
+          />
+        )}
+      </Suspense>
+
+      {/* 10. Mistake Pattern Feedback Inspector Modal */}
+      {inspectedMistake && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="mistake-inspector-title"
+        >
+          <div className="relative w-full max-w-[540px] bg-white rounded-3xl shadow-2xl border border-[#D5D8EE] overflow-hidden p-5 space-y-4 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-[#ECEEFE] pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-[#FEF2F2] text-[#DC2626] flex items-center justify-center">
+                  <AlertCircle className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 id="mistake-inspector-title" className="text-[15px] font-black text-[#15164B]">
+                    {inspectedMistake.title}
+                  </h3>
+                  <span className="text-[10px] font-bold text-[#6B7094] uppercase tracking-wider">
+                    {inspectedMistake.category} • Recorded {inspectedMistake.frequency} time{inspectedMistake.frequency > 1 ? 's' : ''}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setInspectedMistake(null)}
+                className="w-7 h-7 rounded-full bg-[#F4F5FD] hover:bg-[#E8EBFB] text-[#222149] flex items-center justify-center transition-colors cursor-pointer"
+                aria-label="Close inspector"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-3 rounded-2xl bg-[#F0F2FD] border border-[#DEE3FA] text-[12px] text-[#1E224E]">
+              <strong>Rule Explanation: </strong>
+              <span>{inspectedMistake.description}</span>
+            </div>
+
+            <div className="space-y-2 max-h-[280px] overflow-y-auto">
+              <span className="text-[10.5px] font-extrabold uppercase tracking-wider text-[#545CA6] block">
+                Logged Occurrences & Feedback ({inspectedMistake.occurrences.length}):
+              </span>
+              {inspectedMistake.occurrences.map((occ, i) => (
+                <div key={occ.id || i} className="p-3 rounded-xl bg-[#FAF9FE] border border-[#ECEEFE] text-[11.5px] space-y-1">
+                  <div className="flex items-center justify-between text-[10px] text-[#8E93B8]">
+                    <span>Scenario: {occ.scenarioId}</span>
+                    <span className="capitalize">{occ.source} detection</span>
+                  </div>
+                  <div>
+                    <span className="text-[#DC2626] line-through block">{occ.originalSentence}</span>
+                    <span className="text-[#059669] font-bold block">✓ {occ.correctedSentence}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#ECEEFE]">
+              <button
+                type="button"
+                onClick={() => setInspectedMistake(null)}
+                className="px-4 py-1.5 rounded-full border border-[#D5D8EE] text-[#15164B] text-[11.5px] font-bold hover:bg-[#F0F2FD] transition-colors cursor-pointer"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const studio = inspectedMistake.recommendedPracticeStudio;
+                  setInspectedMistake(null);
+                  onOpenStudio(studio);
+                }}
+                className="px-4 py-1.5 rounded-full bg-[#15164B] text-white text-[11.5px] font-bold hover:bg-[#0E1038] transition-colors cursor-pointer shadow-xs"
+              >
+                Fix in {inspectedMistake.recommendedPracticeStudio === 'grammar' ? 'Grammar Studio' : 'Conversation'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Placement Assessment Modal */}
+      <Suspense fallback={null}>
+        {isPlacementModalOpen && (
+          <PlacementAssessmentModal
+            isOpen={isPlacementModalOpen}
+            userId={userId}
+            currentLevel={curriculumProgress?.currentLevel || 'A2'}
+            onClose={() => setIsPlacementModalOpen(false)}
+            onLevelUpdated={() => loadProgressData()}
+            onNavigateToPractice={onNavigateToPractice}
+            onStartLesson={onContinueLesson}
+          />
+        )}
+      </Suspense>
     </div>
   );
 };

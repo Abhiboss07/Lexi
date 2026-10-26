@@ -342,7 +342,7 @@ export const ExploreActivitiesHub: React.FC<ExploreActivitiesHubProps> = ({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search activities, skills, games, or topics..."
-              className="w-full pl-10 pr-4 py-2.5 bg-white rounded-2xl border border-[#DCE0F7] text-[13px] text-[#15164B] placeholder-[#8E93B8] focus:outline-hidden focus:ring-2 focus:ring-[#545CA6]"
+              className="w-full pl-10 pr-4 py-2.5 bg-white rounded-full border border-[#DCE0F7] text-[13px] text-[#15164B] placeholder-[#8E93B8] focus:border-[#545CA6] focus:ring-2 focus:ring-[#545CA6]/20 shadow-xs transition-all outline-none"
             />
             {searchQuery && (
               <button
