@@ -308,6 +308,7 @@ export class NotificationService {
 
 export const notificationService = new NotificationService();
 
-if (typeof window !== 'undefined') {
+// Expose notification service handle only during development
+if (typeof window !== 'undefined' && import.meta.env.DEV) {
   (window as any).__notificationService = notificationService;
 }

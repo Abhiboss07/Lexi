@@ -13,6 +13,8 @@ import type {
 } from '../types/quickPicks';
 import type { NotificationEventRecord } from '../types/notifications';
 import type { DailyStudyPlanRecord } from '../types/adaptivePlan';
+import type { LearnerMistakeRecord } from '../types/conversationCoach';
+import type { AssessmentResult } from '../types/assessment';
 
 export class LexiDatabase extends Dexie {
   users!: Table<UserProfile, string>;
@@ -29,6 +31,8 @@ export class LexiDatabase extends Dexie {
   bookmarkedIdioms!: Table<BookmarkedIdiomRecord, string>;
   notificationEvents!: Table<NotificationEventRecord, string>;
   dailyStudyPlans!: Table<DailyStudyPlanRecord, string>;
+  mistakeRecords!: Table<LearnerMistakeRecord, string>;
+  assessmentRecords!: Table<AssessmentResult, string>;
 
   constructor() {
     super('LexiDatabase');
@@ -134,6 +138,45 @@ export class LexiDatabase extends Dexie {
     }).upgrade(() => {
       // Safe, versioned migration preserving all existing records, progress, and preferences
     });
+    this.version(9).stores({
+      users: 'id, currentStreak, lastActiveDate',
+      curriculumProgress: 'userId, currentLevel, updatedAt',
+      vocabularyCards: 'id, userId, word, cefrLevel, state, due, lastReviewedAt, sourceLessonId',
+      reviewLogs: 'id, cardId, userId, rating, reviewedAt',
+      practicePreferences: 'userId, defaultDifficulty, defaultSessionLength, dailyGoalMinutes',
+      practiceSessions: 'id, userId, category, difficulty, sessionLength, completedAt',
+      quickNotes: 'id, userId, topic, category, isPinned, createdAt, updatedAt',
+      savedDrawings: 'id, userId, createdAt',
+      dailyChallenges: 'id, userId, date, status, submittedAt',
+      wordQuestResults: 'id, userId, date, completedAt',
+      activityCompletions: 'id, userId, activityId, date, completedAt',
+      bookmarkedIdioms: 'id, userId, expression, bookmarkedAt',
+      notificationEvents: 'id, userId, type, date, timestamp, status',
+      dailyStudyPlans: 'id, userId, date, updatedAt',
+      mistakeRecords: 'id, userId, category, patternKey, frequency, lastOccurredAt',
+    }).upgrade(() => {
+      // Safe, versioned migration preserving all existing records and adding evidence-based mistake tracking
+    });
+    this.version(10).stores({
+      users: 'id, currentStreak, lastActiveDate',
+      curriculumProgress: 'userId, currentLevel, updatedAt',
+      vocabularyCards: 'id, userId, word, cefrLevel, state, due, lastReviewedAt, sourceLessonId',
+      reviewLogs: 'id, cardId, userId, rating, reviewedAt',
+      practicePreferences: 'userId, defaultDifficulty, defaultSessionLength, dailyGoalMinutes',
+      practiceSessions: 'id, userId, category, difficulty, sessionLength, completedAt',
+      quickNotes: 'id, userId, topic, category, isPinned, createdAt, updatedAt',
+      savedDrawings: 'id, userId, createdAt',
+      dailyChallenges: 'id, userId, date, status, submittedAt',
+      wordQuestResults: 'id, userId, date, completedAt',
+      activityCompletions: 'id, userId, activityId, date, completedAt',
+      bookmarkedIdioms: 'id, userId, expression, bookmarkedAt',
+      notificationEvents: 'id, userId, type, date, timestamp, status',
+      dailyStudyPlans: 'id, userId, date, updatedAt',
+      mistakeRecords: 'id, userId, category, patternKey, frequency, lastOccurredAt',
+      assessmentRecords: 'id, userId, type, estimatedCEFRLevel, completedAt, overallScorePercent',
+    }).upgrade(() => {
+      // Safe, versioned migration preserving all existing records and adding CEFR placement and skill assessments
+    });
   }
 }
 
@@ -143,32 +186,74 @@ db.on('versionchange', () => {
   db.close();
 });
 
-if (typeof window !== 'undefined') {
+db.on('blocked', () => {
+  console.warn('Lexi IndexedDB upgrade blocked by an open tab. Please close other Lexi tabs.');
+});
+
+// Expose database handle only during development
+if (typeof window !== 'undefined' && import.meta.env.DEV) {
   (window as any).__lexiDb = db;
 }
 
 const DEFAULT_USER_ID = 'local-learner-1';
 
+let inMemoryUserFallback: UserProfile | null = null;
+
 export async function getOrCreateUserProfile(): Promise<UserProfile> {
-  const existing = await db.users.get(DEFAULT_USER_ID);
-  if (existing) {
-    return existing;
+  if (typeof indexedDB === 'undefined') {
+    if (!inMemoryUserFallback) {
+      inMemoryUserFallback = {
+        id: DEFAULT_USER_ID,
+        name: 'Learner',
+        email: 'learner@lexi.local',
+        currentStreak: 7,
+        longestStreak: 14,
+        lastActiveDate: new Date().toISOString().split('T')[0],
+        cefrLevel: 'A2',
+        dailyGoalMinutes: 15,
+        avatarUrl: '/assets/default-avatar.svg',
+      };
+    }
+    return inMemoryUserFallback;
   }
 
-  const defaultUser: UserProfile = {
-    id: DEFAULT_USER_ID,
-    name: 'Learner',
-    email: 'learner@lexi.local',
-    currentStreak: 7, // Initial default matching the approved reference's "🔥 7"
-    longestStreak: 14,
-    lastActiveDate: new Date().toISOString().split('T')[0],
-    cefrLevel: 'A2',
-    dailyGoalMinutes: 15,
-    avatarUrl: '/assets/default-avatar.svg',
-  };
+  try {
+    const existing = await db.users.get(DEFAULT_USER_ID);
+    if (existing) {
+      return existing;
+    }
 
-  await db.users.put(defaultUser);
-  return defaultUser;
+    const defaultUser: UserProfile = {
+      id: DEFAULT_USER_ID,
+      name: 'Learner',
+      email: 'learner@lexi.local',
+      currentStreak: 7, // Initial default matching the approved reference's "🔥 7"
+      longestStreak: 14,
+      lastActiveDate: new Date().toISOString().split('T')[0],
+      cefrLevel: 'A2',
+      dailyGoalMinutes: 15,
+      avatarUrl: '/assets/default-avatar.svg',
+    };
+
+    await db.users.put(defaultUser);
+    return defaultUser;
+  } catch (err) {
+    console.warn('Failed to access IndexedDB users table; using memory profile fallback:', err);
+    if (!inMemoryUserFallback) {
+      inMemoryUserFallback = {
+        id: DEFAULT_USER_ID,
+        name: 'Learner',
+        email: 'learner@lexi.local',
+        currentStreak: 7,
+        longestStreak: 14,
+        lastActiveDate: new Date().toISOString().split('T')[0],
+        cefrLevel: 'A2',
+        dailyGoalMinutes: 15,
+        avatarUrl: '/assets/default-avatar.svg',
+      };
+    }
+    return inMemoryUserFallback;
+  }
 }
 
 export async function incrementUserStreak(): Promise<number> {
@@ -177,11 +262,20 @@ export async function incrementUserStreak(): Promise<number> {
 
   if (user.lastActiveDate !== today) {
     const updatedStreak = user.currentStreak + 1;
-    await db.users.update(user.id, {
-      currentStreak: updatedStreak,
-      longestStreak: Math.max(user.longestStreak, updatedStreak),
-      lastActiveDate: today,
-    });
+    if (typeof indexedDB !== 'undefined') {
+      try {
+        await db.users.update(user.id, {
+          currentStreak: updatedStreak,
+          longestStreak: Math.max(user.longestStreak, updatedStreak),
+          lastActiveDate: today,
+        });
+      } catch {
+        // Fallback update in memory
+      }
+    }
+    user.currentStreak = updatedStreak;
+    user.longestStreak = Math.max(user.longestStreak, updatedStreak);
+    user.lastActiveDate = today;
     return updatedStreak;
   }
   return user.currentStreak;

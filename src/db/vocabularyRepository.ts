@@ -201,8 +201,10 @@ export class DexieVocabularyRepository implements IVocabularyRepository {
     now: Date = new Date()
   ): Promise<{ updatedCard: VocabularyCardRecord; reviewLog: ReviewLogRecord }> {
     const { updatedCard, reviewLog } = applyCardRating(card, rating, now);
-    await this.cardsTable.put(updatedCard);
-    await this.logsTable.put(reviewLog);
+    await db.transaction('rw', [this.cardsTable, this.logsTable], async () => {
+      await this.cardsTable.put(updatedCard);
+      await this.logsTable.put(reviewLog);
+    });
     return { updatedCard, reviewLog };
   }
 
@@ -249,8 +251,13 @@ export class DexieVocabularyRepository implements IVocabularyRepository {
       };
 
       const newCard = createVocabularyCard(vocabItem, userId, now);
-      await this.cardsTable.put(newCard);
       added.push(newCard);
+    }
+
+    if (added.length > 0) {
+      await db.transaction('rw', [this.cardsTable], async () => {
+        await this.cardsTable.bulkPut(added);
+      });
     }
 
     return added;
@@ -273,10 +280,12 @@ export class DexieVocabularyRepository implements IVocabularyRepository {
   }
 
   async resetDeck(userId: string): Promise<void> {
-    const cards = await this.cardsTable.where('userId').equals(userId).toArray();
-    for (const card of cards) {
-      await this.cardsTable.delete(card.id);
-    }
+    await db.transaction('rw', [this.cardsTable, this.logsTable], async () => {
+      const cardKeys = await this.cardsTable.where('userId').equals(userId).primaryKeys();
+      await this.cardsTable.bulkDelete(cardKeys);
+      const logKeys = await this.logsTable.where('userId').equals(userId).primaryKeys();
+      await this.logsTable.bulkDelete(logKeys);
+    });
   }
 }
 

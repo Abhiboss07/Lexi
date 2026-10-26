@@ -44,33 +44,35 @@ class DexiePracticeRepository implements IPracticeRepository {
     };
     const updated = validatePracticePreferences(merged, userId, current.cefrLevel);
 
-    await db.practicePreferences.put(updated);
+    await db.transaction('rw', [db.practicePreferences, db.users, db.curriculumProgress], async () => {
+      await db.practicePreferences.put(updated);
 
-    // Sync dailyGoalMinutes and cefrLevel to user profile
-    const user = await db.users.get(userId);
-    if (user) {
-      const userUpdate: Record<string, unknown> = {};
-      if (updated.dailyGoalMinutes !== user.dailyGoalMinutes) {
-        userUpdate.dailyGoalMinutes = updated.dailyGoalMinutes;
+      // Sync dailyGoalMinutes and cefrLevel to user profile
+      const user = await db.users.get(userId);
+      if (user) {
+        const userUpdate: Record<string, unknown> = {};
+        if (updated.dailyGoalMinutes !== user.dailyGoalMinutes) {
+          userUpdate.dailyGoalMinutes = updated.dailyGoalMinutes;
+        }
+        if (updated.cefrLevel !== user.cefrLevel) {
+          userUpdate.cefrLevel = updated.cefrLevel;
+        }
+        if (Object.keys(userUpdate).length > 0) {
+          await db.users.update(userId, userUpdate);
+        }
       }
-      if (updated.cefrLevel !== user.cefrLevel) {
-        userUpdate.cefrLevel = updated.cefrLevel;
-      }
-      if (Object.keys(userUpdate).length > 0) {
-        await db.users.update(userId, userUpdate);
-      }
-    }
 
-    // Sync curriculum currentLevel when CEFR level manually updated
-    if (update.cefrLevel) {
-      const progress = await db.curriculumProgress.get(userId);
-      if (progress && progress.currentLevel !== update.cefrLevel) {
-        await db.curriculumProgress.update(userId, {
-          currentLevel: update.cefrLevel,
-          updatedAt: new Date().toISOString(),
-        });
+      // Sync curriculum currentLevel when CEFR level manually updated
+      if (update.cefrLevel) {
+        const progress = await db.curriculumProgress.get(userId);
+        if (progress && progress.currentLevel !== update.cefrLevel) {
+          await db.curriculumProgress.update(userId, {
+            currentLevel: update.cefrLevel,
+            updatedAt: new Date().toISOString(),
+          });
+        }
       }
-    }
+    });
 
     return updated;
   }
@@ -78,6 +80,28 @@ class DexiePracticeRepository implements IPracticeRepository {
   async recordSession(
     sessionData: Omit<PracticeSessionRecord, 'id' | 'completedAt'> & { id?: string; completedAt?: string }
   ): Promise<PracticeSessionRecord> {
+    const todayDate = (sessionData.completedAt || new Date().toISOString()).split('T')[0];
+
+    // If activityId is present, deduplicate to prevent redundant records for same day activity
+    if (sessionData.activityId) {
+      const existing = await db.practiceSessions
+        .where('userId')
+        .equals(sessionData.userId)
+        .filter((s) => s.activityId === sessionData.activityId && (s.completedAt || '').startsWith(todayDate))
+        .first();
+
+      if (existing) {
+        const updated: PracticeSessionRecord = {
+          ...existing,
+          score: Math.max(existing.score || 0, sessionData.score || 0),
+          durationMinutes: Math.max(existing.durationMinutes || 0, sessionData.durationMinutes || 0),
+          notes: sessionData.notes || existing.notes,
+        };
+        await db.practiceSessions.put(updated);
+        return updated;
+      }
+    }
+
     const record: PracticeSessionRecord = {
       id: sessionData.id || `session-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
       userId: sessionData.userId,
@@ -147,6 +171,26 @@ export class InMemoryPracticeRepository implements IPracticeRepository {
   async recordSession(
     sessionData: Omit<PracticeSessionRecord, 'id' | 'completedAt'> & { id?: string; completedAt?: string }
   ): Promise<PracticeSessionRecord> {
+    const todayDate = (sessionData.completedAt || new Date().toISOString()).split('T')[0];
+
+    if (sessionData.activityId) {
+      const existingIdx = this.sessions.findIndex(
+        (s) => s.userId === sessionData.userId && s.activityId === sessionData.activityId && (s.completedAt || '').startsWith(todayDate)
+      );
+
+      if (existingIdx >= 0) {
+        const existing = this.sessions[existingIdx];
+        const updated: PracticeSessionRecord = {
+          ...existing,
+          score: Math.max(existing.score || 0, sessionData.score || 0),
+          durationMinutes: Math.max(existing.durationMinutes || 0, sessionData.durationMinutes || 0),
+          notes: sessionData.notes || existing.notes,
+        };
+        this.sessions[existingIdx] = updated;
+        return { ...updated };
+      }
+    }
+
     const record: PracticeSessionRecord = {
       id: sessionData.id || `session-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
       userId: sessionData.userId,

@@ -6,6 +6,8 @@ import { quickPicksRepository } from '../db/quickPicksRepository';
 import { calculateCurriculumSummary } from './curriculumProgressionService';
 import { getLocalDateString, getDateSeed } from './dailyPracticeService';
 import { SCENARIO_DEFINITIONS } from '../data/scenariosData';
+import { mistakeTrackingService } from './mistakeTrackingService';
+import { assessmentService } from './assessmentService';
 import type { PracticeCategoryKey } from '../components/practice/PracticeCategoryNav';
 import type { UserProfile } from '../types';
 import type { ReviewLogRecord } from '../types/vocabulary';
@@ -18,11 +20,12 @@ import type {
 } from '../types/adaptivePlan';
 
 export const SKILL_LABELS: Record<PracticeCategoryKey, string> = {
-  conversation: 'Conversation & Speaking',
+  conversation: 'Conversation & Dialogue',
+  speaking: 'Speaking & Pronunciation',
   stories: 'Stories & Reading',
   vocabulary: 'Vocabulary & Idioms',
   grammar: 'Grammar & Syntax',
-  listening: 'Listening & Audio',
+  listening: 'Listening & Audio Comprehension',
   interview: 'Interview & Career',
 };
 
@@ -115,6 +118,7 @@ export class AdaptiveLearningService {
       todayMinutes,
       _activityCompletions,
       reviewLogs,
+      latestAssessment,
     ] = await Promise.all([
       this.storage.getUser(userId),
       this.practiceRepo.getPreferences(userId),
@@ -125,6 +129,7 @@ export class AdaptiveLearningService {
       this.practiceRepo.getTodayPracticeMinutes(userId),
       this.quickPicksRepo.getAllActivityCompletions(userId),
       this.storage.getReviewLogs(userId),
+      assessmentService.getLatestAssessment(userId),
     ]);
 
     const currentLevel = preferences.cefrLevel || curriculumProgress.currentLevel || 'A2';
@@ -191,6 +196,7 @@ export class AdaptiveLearningService {
     // Per-skill diagnostics
     const categories: PracticeCategoryKey[] = [
       'conversation',
+      'speaking',
       'stories',
       'vocabulary',
       'grammar',
@@ -206,7 +212,12 @@ export class AdaptiveLearningService {
     let hasSufficientEvidence = false;
 
     for (const cat of categories) {
-      const catSessions = allSessions.filter((s: any) => s.category === cat);
+      const catSessions = allSessions.filter((s: any) => {
+        if (cat === 'speaking') {
+          return s.category === 'speaking' || s.activityId?.startsWith('daily-speaking') || s.notes?.includes('Speaking & Pronunciation');
+        }
+        return s.category === cat;
+      });
       const catScored = catSessions.filter(
         (s: any) => typeof s.score === 'number' && !isNaN(s.score)
       );
@@ -254,6 +265,41 @@ export class AdaptiveLearningService {
       } else if (sessionCount === 1) {
         score = catScored[0].score || null;
         insight = `Initial score recorded (${score}%). 1 more session needed for verification.`;
+      }
+
+      // Check if latest diagnostic assessment provides verified baseline evidence
+      if (sessionCount < 2 && latestAssessment?.skillBreakdown) {
+        let assessSkillKey: 'grammar' | 'vocabulary' | 'listening' | 'reading' | null = null;
+        if (cat === 'grammar') assessSkillKey = 'grammar';
+        else if (cat === 'vocabulary') assessSkillKey = 'vocabulary';
+        else if (cat === 'listening') assessSkillKey = 'listening';
+        else if (cat === 'stories') assessSkillKey = 'reading';
+
+        if (assessSkillKey && latestAssessment.skillBreakdown[assessSkillKey]) {
+          const assessScore = latestAssessment.skillBreakdown[assessSkillKey];
+          if (assessScore.totalQuestions >= 2) {
+            hasSufficientEvidence = true;
+            score = assessScore.accuracyPercent;
+            if (score >= 85) {
+              status = 'strength';
+              insight = `Diagnostic assessment verified strong command (${score}%). ${assessScore.strengthDescription}`;
+              if (score > maxScore) {
+                maxScore = score;
+                strongestArea = { category: cat, label: SKILL_LABELS[cat], score };
+              }
+            } else if (score >= 70) {
+              status = 'proficient';
+              insight = `Diagnostic assessment showed solid baseline (${score}%). ${assessScore.growthArea}`;
+            } else {
+              status = 'needs_reinforcement';
+              insight = `Diagnostic assessment identified growth opportunity (${score}%). ${assessScore.growthArea}`;
+              if (score < minScore) {
+                minScore = score;
+                weakestArea = { category: cat, label: SKILL_LABELS[cat], score };
+              }
+            }
+          }
+        }
       }
 
       skills[cat] = {
@@ -534,6 +580,34 @@ export class AdaptiveLearningService {
           },
         });
       }
+    }
+
+    // RULE 3b: If learner has persistent recurring mistakes, add targeted diagnostic drill
+    try {
+      const persistentMistakes = await mistakeTrackingService.getPersistentMistakes(profile.userId);
+      if (persistentMistakes.length > 0 && items.length < 4) {
+        const topMistake = persistentMistakes[0];
+        items.push({
+          id: `plan-item-mistake-${topMistake.patternKey}-${dateStr}`,
+          order: order++,
+          title: `Address ${topMistake.title}`,
+          subtitle: `Friction Point • Recorded ${topMistake.frequency}x in Conversations`,
+          type: 'weakness_reinforcement',
+          category: topMistake.recommendedPracticeStudio,
+          estimatedMinutes: 4,
+          cefrLevel: profile.currentLevel,
+          reason: `Targeted practice to overcome repeated issue: "${topMistake.description}".`,
+          isPriority: false,
+          isCompleted: false,
+          action: {
+            type: 'studio',
+            targetId: topMistake.recommendedPracticeStudio,
+            category: topMistake.recommendedPracticeStudio,
+          },
+        });
+      }
+    } catch {
+      // safe fallback
     }
 
     // RULE 4: For standard (15m) or deep (30m) learners, add a complementary engagement item

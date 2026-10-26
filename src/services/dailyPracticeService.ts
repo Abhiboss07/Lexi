@@ -2,8 +2,8 @@ import type { DailyPracticeCategory, DailyPracticeOption } from '../types/dailyP
 import { vocabularyRepository } from '../db/vocabularyRepository';
 import { practiceRepository } from '../db/practiceRepository';
 import { incrementUserStreak } from '../db';
-import { LISTENING_SCENARIOS } from '../components/practice/ListeningVoiceStudioModal';
-import { CONVERSATION_SCENARIOS } from '../components/practice/ConversationCoachModal';
+import { LISTENING_SCENARIOS } from '../data/listeningData';
+import { CONVERSATION_SCENARIOS_DATA as CONVERSATION_SCENARIOS } from '../data/conversationScenariosData';
 
 /**
  * Returns user's local date as ISO YYYY-MM-DD
