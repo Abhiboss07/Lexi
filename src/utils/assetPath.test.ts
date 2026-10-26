@@ -24,4 +24,10 @@ describe('getAssetPath utility', () => {
     expect(resolved).toContain('assets/default-avatar.svg');
     expect(resolved.startsWith('/')).toBe(true);
   });
+
+  it('is idempotent when already prefixed with base URL', () => {
+    const once = getAssetPath('/assets/default-avatar.svg');
+    const twice = getAssetPath(once);
+    expect(twice).toBe(once);
+  });
 });

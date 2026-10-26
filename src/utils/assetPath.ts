@@ -13,11 +13,16 @@ export function getAssetPath(relativePath: string): string {
     return relativePath;
   }
 
-  const clean = relativePath.startsWith('/') ? relativePath.slice(1) : relativePath;
   const rawBase = typeof import.meta !== 'undefined' && import.meta.env?.BASE_URL 
     ? import.meta.env.BASE_URL 
     : '/';
   const base = rawBase.endsWith('/') ? rawBase : `${rawBase}/`;
 
+  // Idempotency: If the path is already prefixed with base, do not double-prefix
+  if (relativePath.startsWith(base) || (rawBase !== '/' && relativePath.startsWith(rawBase))) {
+    return relativePath;
+  }
+
+  const clean = relativePath.startsWith('/') ? relativePath.slice(1) : relativePath;
   return `${base}${clean}`;
 }
