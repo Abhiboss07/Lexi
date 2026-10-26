@@ -1,0 +1,18 @@
+{
+  "short_name": "Lexi",
+  "name": "Lexi — Your English Companion",
+  "description": "Premium, free-to-use, ad-free English learning through structured lessons, interactive stories, and personalized practice.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#E7EAFD",
+  "theme_color": "#232655",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

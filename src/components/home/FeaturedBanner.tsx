@@ -1,6 +1,7 @@
 import React from 'react';
 import { Clock, BarChart2, ArrowRight } from 'lucide-react';
 import type { FeaturedActivity } from '../../types';
+import { getAssetPath } from '../../utils/assetPath';
 
 interface FeaturedBannerProps {
   activity: FeaturedActivity;
@@ -26,7 +27,7 @@ export const FeaturedBanner: React.FC<FeaturedBannerProps> = ({ activity, onLaun
         {/* Background Image with Ambient Gradient Fade */}
         <div className="absolute inset-0 z-0">
           <img
-            src={activity.imageAsset}
+            src={getAssetPath(activity.imageAsset)}
             alt="Warm café scene with people enjoying coffee and conversation"
             className="w-full h-full object-cover object-right opacity-45 group-hover:opacity-55 transition-opacity group-hover:scale-105 duration-700 ease-out"
           />

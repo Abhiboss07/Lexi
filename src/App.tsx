@@ -1,12 +1,13 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
+import { getAssetPath } from './utils/assetPath';
 import { LexiHeader } from './components/home/LexiHeader';
 import { HeroCard } from './components/home/HeroCard';
 import { CategoryShortcuts } from './components/home/CategoryShortcuts';
 import { FeaturedBanner } from './components/home/FeaturedBanner';
 import { QuickPicks } from './components/home/QuickPicks';
 import { BottomNav } from './components/common/BottomNav';
-import { ActivityModal } from './components/modals/ActivityModal';
-import { SearchModal } from './components/modals/SearchModal';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
+import { preloadLearningModals } from './utils/preloadChunks';
 import { ContinueLearningCard } from './components/home/ContinueLearningCard';
 import { WordOfTheDayCard } from './components/home/WordOfTheDayCard';
 import { DailyPracticeRow, DailyPracticeOption } from './components/home/DailyPracticeRow';
@@ -16,48 +17,55 @@ import {
   FEATURED_CAFE_ACTIVITY, 
   QUICK_PICKS 
 } from './data/homeData';
-import { LessonPlayer } from './components/lesson/LessonPlayer';
 import { PracticeScreen } from './components/practice/PracticeScreen';
-import { ReviewPlayer } from './components/vocabulary/ReviewPlayer';
 import { getCurriculumLesson } from './data/curriculum';
 import { getMappedLessonForActivity } from './data/lessonMapping';
 import { getOrCreateUserProfile, incrementUserStreak } from './db';
 import type { CurriculumLesson } from './types/curriculum';
 import type { VocabularyCardRecord } from './types/vocabulary';
 import type { NavigationTab, LearningShortcut, QuickPickItem, FeaturedActivity, UserProfile } from './types';
-import { PracticeModal, type PracticeCategoryKey } from './components/practice/PracticeModals';
+import type { PracticeCategoryKey } from './components/practice/PracticeModals';
 import { ProgressDashboardScreen } from './components/progress';
 import { vocabularyRepository } from './db/vocabularyRepository';
 import { dailyPracticeService } from './services/dailyPracticeService';
-import { QuickNotesModal } from './components/quickpicks/QuickNotesModal';
-import { WordQuestModal } from './components/quickpicks/WordQuestModal';
-import { SketchExplainModal } from './components/quickpicks/SketchExplainModal';
-import { DailyChallengeModal } from './components/quickpicks/DailyChallengeModal';
-import { PracticePreferencesModal } from './components/practice/PracticePreferencesModal';
-import { ExploreActivitiesHub, type ActivityHubKey } from './components/quickpicks/ExploreActivitiesHub';
-import { PhraseBuilderModal } from './components/quickpicks/hub/PhraseBuilderModal';
-import { MiniGrammarGamesModal } from './components/quickpicks/hub/MiniGrammarGamesModal';
-import { ScenarioChallengeModal } from './components/quickpicks/hub/ScenarioChallengeModal';
-import { IdiomOfTheDayModal } from './components/quickpicks/hub/IdiomOfTheDayModal';
-import { DailyWordPuzzleModal } from './components/quickpicks/hub/DailyWordPuzzleModal';
-import { DescribeAndDrawModal } from './components/quickpicks/hub/DescribeAndDrawModal';
-import { ShortListeningQuizModal } from './components/quickpicks/hub/ShortListeningQuizModal';
-import { SpeakingPromptModal } from './components/quickpicks/hub/SpeakingPromptModal';
-import { InterviewSprintModal } from './components/quickpicks/hub/InterviewSprintModal';
+import type { ActivityHubKey } from './components/quickpicks/ExploreActivitiesHub';
 import { SplashScreen } from './components/common/SplashScreen';
 import { NotificationToast } from './components/notifications/NotificationToast';
 import { notificationService } from './services/notificationService';
 import { systemNotificationService } from './services/systemNotificationService';
 import type { SmartNotification } from './types/notifications';
-import { CurriculumBrowserModal } from './components/modals/CurriculumBrowserModal';
 import { curriculumProgressionService, type CurriculumDisplaySummary } from './services/curriculumProgressionService';
 import { curriculumRepository } from './db/curriculumRepository';
 import type { CurriculumProgressionState } from './types/curriculum';
 import type { CurriculumSearchResult } from './services/curriculumSearchService';
-import { InteractiveScenarioModal } from './components/modals/InteractiveScenarioModal';
 import { scenarioSimulationService } from './services/scenarioSimulationService';
 import { TodaysLearningPlan } from './components/home/TodaysLearningPlan';
 import type { DailyStudyPlanItem } from './types/adaptivePlan';
+
+import { CurriculumBrowserModal } from './components/modals/CurriculumBrowserModal';
+
+// Code-split dynamic modals and secondary studios
+const ActivityModal = lazy(() => import('./components/modals/ActivityModal').then(m => ({ default: m.ActivityModal })));
+const SearchModal = lazy(() => import('./components/modals/SearchModal').then(m => ({ default: m.SearchModal })));
+const LessonPlayer = lazy(() => import('./components/lesson/LessonPlayer').then(m => ({ default: m.LessonPlayer })));
+const ReviewPlayer = lazy(() => import('./components/vocabulary/ReviewPlayer').then(m => ({ default: m.ReviewPlayer })));
+const PracticeModal = lazy(() => import('./components/practice/PracticeModals').then(m => ({ default: m.PracticeModal })));
+const QuickNotesModal = lazy(() => import('./components/quickpicks/QuickNotesModal').then(m => ({ default: m.QuickNotesModal })));
+const WordQuestModal = lazy(() => import('./components/quickpicks/WordQuestModal').then(m => ({ default: m.WordQuestModal })));
+const SketchExplainModal = lazy(() => import('./components/quickpicks/SketchExplainModal').then(m => ({ default: m.SketchExplainModal })));
+const DailyChallengeModal = lazy(() => import('./components/quickpicks/DailyChallengeModal').then(m => ({ default: m.DailyChallengeModal })));
+const PracticePreferencesModal = lazy(() => import('./components/practice/PracticePreferencesModal').then(m => ({ default: m.PracticePreferencesModal })));
+const ExploreActivitiesHub = lazy(() => import('./components/quickpicks/ExploreActivitiesHub').then(m => ({ default: m.ExploreActivitiesHub })));
+const PhraseBuilderModal = lazy(() => import('./components/quickpicks/hub/PhraseBuilderModal').then(m => ({ default: m.PhraseBuilderModal })));
+const MiniGrammarGamesModal = lazy(() => import('./components/quickpicks/hub/MiniGrammarGamesModal').then(m => ({ default: m.MiniGrammarGamesModal })));
+const ScenarioChallengeModal = lazy(() => import('./components/quickpicks/hub/ScenarioChallengeModal').then(m => ({ default: m.ScenarioChallengeModal })));
+const IdiomOfTheDayModal = lazy(() => import('./components/quickpicks/hub/IdiomOfTheDayModal').then(m => ({ default: m.IdiomOfTheDayModal })));
+const DailyWordPuzzleModal = lazy(() => import('./components/quickpicks/hub/DailyWordPuzzleModal').then(m => ({ default: m.DailyWordPuzzleModal })));
+const DescribeAndDrawModal = lazy(() => import('./components/quickpicks/hub/DescribeAndDrawModal').then(m => ({ default: m.DescribeAndDrawModal })));
+const ShortListeningQuizModal = lazy(() => import('./components/quickpicks/hub/ShortListeningQuizModal').then(m => ({ default: m.ShortListeningQuizModal })));
+const SpeakingPromptModal = lazy(() => import('./components/quickpicks/hub/SpeakingPromptModal').then(m => ({ default: m.SpeakingPromptModal })));
+const InterviewSprintModal = lazy(() => import('./components/quickpicks/hub/InterviewSprintModal').then(m => ({ default: m.InterviewSprintModal })));
+const InteractiveScenarioModal = lazy(() => import('./components/modals/InteractiveScenarioModal').then(m => ({ default: m.InteractiveScenarioModal })));
 
 export function App() {
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -100,6 +108,8 @@ export function App() {
     getOrCreateUserProfile().then((u) => {
       setUser(u);
     });
+    // Idle preloading for offline reliability & smooth instant modal transitions
+    preloadLearningModals();
   }, []);
 
   // Real curriculum progression loader
@@ -370,6 +380,10 @@ export function App() {
         />
       )}
 
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
+
       <div className="min-h-screen bg-[#E7EAFD] flex items-center justify-center p-0 sm:py-6">
         {/* Device Frame / Screen Canvas */}
         <main 
@@ -378,13 +392,14 @@ export function App() {
           aria-label="Lexi Application"
         >
         {/* Scrollable Content Container */}
-        <div className="flex-1 overflow-y-auto px-4 sm:px-5 pb-6 space-y-4">
-          {activeTab === 'Home' ? (
+        <div id="main-content" tabIndex={-1} className="flex-1 px-4 sm:px-5 pb-24 sm:pb-6 space-y-4 focus:outline-hidden">
+          <ErrorBoundary fallbackTitle="Lexi Application Error">
+            {activeTab === 'Home' ? (
             <>
               {/* Header */}
               <LexiHeader
                 streakCount={user?.currentStreak ?? 7}
-                avatarUrl={user?.avatarUrl ?? '/assets/default-avatar.svg'}
+                avatarUrl={user?.avatarUrl ?? getAssetPath('/assets/default-avatar.svg')}
                 onOpenSearch={() => setSearchOpen(true)}
                 onOpenProfile={() => setIsPreferencesOpen(true)}
               />
@@ -494,242 +509,286 @@ export function App() {
               }}
             />
           ) : null}
+          </ErrorBoundary>
         </div>
 
         {/* 4-Destination Bottom Navigation */}
         <BottomNav activeTab={activeTab} onSelectTab={setActiveTab} />
 
-        {/* Interactive Activity Dialog */}
-        <ActivityModal
-          isOpen={activeModal.isOpen}
-          title={activeModal.title}
-          subtitle={activeModal.subtitle}
-          category={activeModal.category}
-          description={activeModal.description}
-          mappedLessonId={activeModal.mappedLessonId}
-          onClose={() => setActiveModal({ ...activeModal, isOpen: false })}
-          onCompleteExercise={handleCompleteExercise}
-          onStartLesson={(lessonId) => {
-            const lesson = getCurriculumLesson(lessonId);
-            if (lesson) {
-              setActiveModal((prev) => ({ ...prev, isOpen: false }));
-              setActiveLesson(lesson);
-            }
-          }}
-        />
+        <ErrorBoundary fallbackTitle="Activity Error">
+          <Suspense fallback={null}>
+            {/* Interactive Activity Dialog */}
+            {activeModal.isOpen && (
+              <ActivityModal
+                isOpen={activeModal.isOpen}
+                title={activeModal.title}
+                subtitle={activeModal.subtitle}
+                category={activeModal.category}
+                description={activeModal.description}
+                mappedLessonId={activeModal.mappedLessonId}
+                onClose={() => setActiveModal({ ...activeModal, isOpen: false })}
+                onCompleteExercise={handleCompleteExercise}
+                onStartLesson={(lessonId) => {
+                  const lesson = getCurriculumLesson(lessonId);
+                  if (lesson) {
+                    setActiveModal((prev) => ({ ...prev, isOpen: false }));
+                    setActiveLesson(lesson);
+                  }
+                }}
+              />
+            )}
 
-        {/* Quick Search Overlay */}
-        <SearchModal
-          isOpen={searchOpen}
-          onClose={() => setSearchOpen(false)}
-          onSelectResult={(result: CurriculumSearchResult) => {
-            if (result.type === 'lesson' && result.lessonId) {
-              const lesson = getCurriculumLesson(result.lessonId);
-              if (lesson) {
-                setActiveLesson(lesson);
-                return;
-              }
-            }
-            if (result.type === 'studio' && result.studioKey) {
-              setActivePracticeStudio(result.studioKey);
-              return;
-            }
-            setActiveModal({
-              isOpen: true,
-              title: result.title,
-              category: result.category,
-              description: result.subtitle,
-            });
-          }}
-          onSelectTopic={(topic) => {
-            setActiveModal({
-              isOpen: true,
-              title: topic,
-              category: 'Search Result',
-              description: `Loaded lesson topic: "${topic}". Jump directly into interactive grammar and dialogue practice.`,
-            });
-          }}
-        />
+            {/* Quick Search Overlay */}
+            {searchOpen && (
+              <SearchModal
+                isOpen={searchOpen}
+                onClose={() => setSearchOpen(false)}
+                onSelectResult={(result: CurriculumSearchResult) => {
+                  if (result.type === 'lesson' && result.lessonId) {
+                    const lesson = getCurriculumLesson(result.lessonId);
+                    if (lesson) {
+                      setActiveLesson(lesson);
+                      return;
+                    }
+                  }
+                  if (result.type === 'studio' && result.studioKey) {
+                    setActivePracticeStudio(result.studioKey);
+                    return;
+                  }
+                  setActiveModal({
+                    isOpen: true,
+                    title: result.title,
+                    category: result.category,
+                    description: result.subtitle,
+                  });
+                }}
+                onSelectTopic={(topic) => {
+                  setActiveModal({
+                    isOpen: true,
+                    title: topic,
+                    category: 'Search Result',
+                    description: `Loaded lesson topic: "${topic}". Jump directly into interactive grammar and dialogue practice.`,
+                  });
+                }}
+              />
+            )}
 
-        {/* Full Interactive Lesson Player */}
-        {activeLesson && (
-          <LessonPlayer
-            lesson={activeLesson}
-            userId={user?.id || 'local-learner-1'}
-            onClose={() => setActiveLesson(null)}
-            onCompleteLesson={async () => {
-              const updatedStreak = await incrementUserStreak();
-              if (user) {
-                setUser({ ...user, currentStreak: updatedStreak });
-              }
-              await refreshCurriculum();
-            }}
-          />
-        )}
+            {/* Full Interactive Lesson Player */}
+            {activeLesson && (
+              <LessonPlayer
+                lesson={activeLesson}
+                userId={user?.id || 'local-learner-1'}
+                onClose={() => setActiveLesson(null)}
+                onCompleteLesson={async () => {
+                  const updatedStreak = await incrementUserStreak();
+                  if (user) {
+                    setUser({ ...user, currentStreak: updatedStreak });
+                  }
+                  await refreshCurriculum();
+                }}
+              />
+            )}
 
-        {/* Spaced-Repetition FSRS Review Player */}
-        {reviewCards && (
-          <ReviewPlayer
-            cards={reviewCards}
-            onClose={() => setReviewCards(null)}
-            onFinishedReview={async () => {
-              const updatedStreak = await incrementUserStreak();
-              if (user) {
-                setUser({ ...user, currentStreak: updatedStreak });
-              }
-              await dailyPracticeService.recordDailyCompletion(user?.id || 'local-learner-1', 'vocabulary', 95);
-              setDailyRefreshTrigger((prev) => prev + 1);
-            }}
-          />
-        )}
-        {/* Dedicated Practice Studio Modal (Conversation, Stories, Grammar, Listening, Interview) */}
-        {activePracticeStudio && (
-          <PracticeModal
-            category={activePracticeStudio}
-            userId={user?.id || 'local-learner-1'}
-            onClose={() => {
-              setActivePracticeStudio(null);
-              setDailyRefreshTrigger((prev) => prev + 1);
-            }}
-          />
-        )}
+            {/* Spaced-Repetition FSRS Review Player */}
+            {reviewCards && (
+              <ReviewPlayer
+                cards={reviewCards}
+                onClose={() => setReviewCards(null)}
+                onFinishedReview={async () => {
+                  const updatedStreak = await incrementUserStreak();
+                  if (user) {
+                    setUser({ ...user, currentStreak: updatedStreak });
+                  }
+                  await dailyPracticeService.recordDailyCompletion(user?.id || 'local-learner-1', 'vocabulary', 95);
+                  setDailyRefreshTrigger((prev) => prev + 1);
+                }}
+              />
+            )}
 
-        {/* Complementary Quick Picks Modals */}
-        <QuickNotesModal
-          isOpen={activeQuickPickModal === 'notes'}
-          onClose={() => setActiveQuickPickModal(null)}
-          userId={user?.id || 'local-learner-1'}
-        />
-        <WordQuestModal
-          isOpen={activeQuickPickModal === 'quest'}
-          onClose={() => setActiveQuickPickModal(null)}
-          userId={user?.id || 'local-learner-1'}
-          onCompleteExercise={handleCompleteExercise}
-        />
-        <SketchExplainModal
-          isOpen={activeQuickPickModal === 'sketch'}
-          onClose={() => setActiveQuickPickModal(null)}
-          userId={user?.id || 'local-learner-1'}
-        />
-        <DailyChallengeModal
-          isOpen={activeQuickPickModal === 'challenge'}
-          onClose={() => setActiveQuickPickModal(null)}
-          userId={user?.id || 'local-learner-1'}
-          onCompleteExercise={handleCompleteExercise}
-        />
+            {/* Dedicated Practice Studio Modal (Conversation, Stories, Grammar, Listening, Interview) */}
+            {activePracticeStudio && (
+              <PracticeModal
+                category={activePracticeStudio}
+                userId={user?.id || 'local-learner-1'}
+                onClose={() => {
+                  setActivePracticeStudio(null);
+                  setDailyRefreshTrigger((prev) => prev + 1);
+                }}
+              />
+            )}
 
-        {/* Personalized Practice Preferences Modal */}
-        <PracticePreferencesModal
-          isOpen={isPreferencesOpen}
-          onClose={() => setIsPreferencesOpen(false)}
-          userId={user?.id || 'local-learner-1'}
-          onSaved={async () => {
-            const updated = await getOrCreateUserProfile();
-            setUser(updated);
-          }}
-        />
+            {/* Complementary Quick Picks Modals */}
+            {activeQuickPickModal === 'notes' && (
+              <QuickNotesModal
+                isOpen={activeQuickPickModal === 'notes'}
+                onClose={() => setActiveQuickPickModal(null)}
+                userId={user?.id || 'local-learner-1'}
+              />
+            )}
+            {activeQuickPickModal === 'quest' && (
+              <WordQuestModal
+                isOpen={activeQuickPickModal === 'quest'}
+                onClose={() => setActiveQuickPickModal(null)}
+                userId={user?.id || 'local-learner-1'}
+                onCompleteExercise={handleCompleteExercise}
+              />
+            )}
+            {activeQuickPickModal === 'sketch' && (
+              <SketchExplainModal
+                isOpen={activeQuickPickModal === 'sketch'}
+                onClose={() => setActiveQuickPickModal(null)}
+                userId={user?.id || 'local-learner-1'}
+              />
+            )}
+            {activeQuickPickModal === 'challenge' && (
+              <DailyChallengeModal
+                isOpen={activeQuickPickModal === 'challenge'}
+                onClose={() => setActiveQuickPickModal(null)}
+                userId={user?.id || 'local-learner-1'}
+                onCompleteExercise={handleCompleteExercise}
+              />
+            )}
 
-        {/* Explore More Activities Hub */}
-        <ExploreActivitiesHub
-          isOpen={isActivityHubOpen}
-          onClose={() => setIsActivityHubOpen(false)}
-          userId={user?.id || 'local-learner-1'}
-          userLevel={user?.cefrLevel || 'A2'}
-          onOpenPreferences={() => setIsPreferencesOpen(true)}
-          onLaunchActivity={(key) => {
-            setIsActivityHubOpen(false);
-            if (key === 'word_quest') {
-              setActiveQuickPickModal('quest');
-            } else if (key === 'sketch_explain') {
-              setActiveQuickPickModal('sketch');
-            } else if (key === 'daily_challenge') {
-              setActiveQuickPickModal('challenge');
-            } else if (key === 'quick_notes') {
-              setActiveQuickPickModal('notes');
-            } else {
-              setActiveHubActivity(key);
-            }
-          }}
-        />
+            {/* Personalized Practice Preferences Modal */}
+            {isPreferencesOpen && (
+              <PracticePreferencesModal
+                isOpen={isPreferencesOpen}
+                onClose={() => setIsPreferencesOpen(false)}
+                userId={user?.id || 'local-learner-1'}
+                onSaved={async () => {
+                  const updated = await getOrCreateUserProfile();
+                  setUser(updated);
+                }}
+              />
+            )}
 
-        {/* Hub Interactive Activities */}
-        <PhraseBuilderModal
-          isOpen={activeHubActivity === 'phrase_builder'}
-          onClose={() => setActiveHubActivity(null)}
-          userId={user?.id || 'local-learner-1'}
-        />
-        <MiniGrammarGamesModal
-          isOpen={activeHubActivity === 'mini_grammar'}
-          onClose={() => setActiveHubActivity(null)}
-          userId={user?.id || 'local-learner-1'}
-        />
-        <ScenarioChallengeModal
-          isOpen={activeHubActivity === 'scenario_challenge'}
-          onClose={() => setActiveHubActivity(null)}
-          userId={user?.id || 'local-learner-1'}
-        />
-        <IdiomOfTheDayModal
-          isOpen={activeHubActivity === 'idiom_of_day'}
-          onClose={() => setActiveHubActivity(null)}
-          userId={user?.id || 'local-learner-1'}
-        />
-        <DailyWordPuzzleModal
-          isOpen={activeHubActivity === 'daily_word_puzzle'}
-          onClose={() => setActiveHubActivity(null)}
-          userId={user?.id || 'local-learner-1'}
-        />
-        <DescribeAndDrawModal
-          isOpen={activeHubActivity === 'describe_and_draw'}
-          onClose={() => setActiveHubActivity(null)}
-          userId={user?.id || 'local-learner-1'}
-        />
-        <ShortListeningQuizModal
-          isOpen={activeHubActivity === 'listening_quiz'}
-          onClose={() => setActiveHubActivity(null)}
-          userId={user?.id || 'local-learner-1'}
-        />
-        <SpeakingPromptModal
-          isOpen={activeHubActivity === 'speaking_prompt'}
-          onClose={() => setActiveHubActivity(null)}
-          userId={user?.id || 'local-learner-1'}
-        />
-        <InterviewSprintModal
-          isOpen={activeHubActivity === 'interview_sprint'}
-          onClose={() => setActiveHubActivity(null)}
-          userId={user?.id || 'local-learner-1'}
-          onOpenFullTrainer={() => {
-            setActiveHubActivity(null);
-            setIsActivityHubOpen(false);
-            setActivePracticeStudio('interview');
-          }}
-        />
+            {/* Explore More Activities Hub */}
+            {isActivityHubOpen && (
+              <ExploreActivitiesHub
+                isOpen={isActivityHubOpen}
+                onClose={() => setIsActivityHubOpen(false)}
+                userId={user?.id || 'local-learner-1'}
+                userLevel={user?.cefrLevel || 'A2'}
+                onOpenPreferences={() => setIsPreferencesOpen(true)}
+                onLaunchActivity={(key) => {
+                  setIsActivityHubOpen(false);
+                  if (key === 'word_quest') {
+                    setActiveQuickPickModal('quest');
+                  } else if (key === 'sketch_explain') {
+                    setActiveQuickPickModal('sketch');
+                  } else if (key === 'daily_challenge') {
+                    setActiveQuickPickModal('challenge');
+                  } else if (key === 'quick_notes') {
+                    setActiveQuickPickModal('notes');
+                  } else {
+                    setActiveHubActivity(key);
+                  }
+                }}
+              />
+            )}
 
-        {/* Interactive Multi-turn Scenario Roleplay Modal */}
-        <InteractiveScenarioModal
-          isOpen={Boolean(activeScenarioId)}
-          scenarioId={activeScenarioId}
-          userId={user?.id || 'local-learner-1'}
-          onClose={() => setActiveScenarioId(null)}
-          onStartLesson={(lessonId) => {
-            const lesson = getCurriculumLesson(lessonId);
-            if (lesson) {
-              setActiveScenarioId(null);
-              setActiveLesson(lesson);
-            }
-          }}
-          onSessionComplete={() => {
-            refreshCurriculum();
-          }}
-        />
+            {/* Hub Interactive Activities */}
+            {activeHubActivity === 'phrase_builder' && (
+              <PhraseBuilderModal
+                isOpen={activeHubActivity === 'phrase_builder'}
+                onClose={() => setActiveHubActivity(null)}
+                userId={user?.id || 'local-learner-1'}
+              />
+            )}
+            {activeHubActivity === 'mini_grammar' && (
+              <MiniGrammarGamesModal
+                isOpen={activeHubActivity === 'mini_grammar'}
+                onClose={() => setActiveHubActivity(null)}
+                userId={user?.id || 'local-learner-1'}
+              />
+            )}
+            {activeHubActivity === 'scenario_challenge' && (
+              <ScenarioChallengeModal
+                isOpen={activeHubActivity === 'scenario_challenge'}
+                onClose={() => setActiveHubActivity(null)}
+                userId={user?.id || 'local-learner-1'}
+              />
+            )}
+            {activeHubActivity === 'idiom_of_day' && (
+              <IdiomOfTheDayModal
+                isOpen={activeHubActivity === 'idiom_of_day'}
+                onClose={() => setActiveHubActivity(null)}
+                userId={user?.id || 'local-learner-1'}
+              />
+            )}
+            {activeHubActivity === 'daily_word_puzzle' && (
+              <DailyWordPuzzleModal
+                isOpen={activeHubActivity === 'daily_word_puzzle'}
+                onClose={() => setActiveHubActivity(null)}
+                userId={user?.id || 'local-learner-1'}
+              />
+            )}
+            {activeHubActivity === 'describe_and_draw' && (
+              <DescribeAndDrawModal
+                isOpen={activeHubActivity === 'describe_and_draw'}
+                onClose={() => setActiveHubActivity(null)}
+                userId={user?.id || 'local-learner-1'}
+              />
+            )}
+            {activeHubActivity === 'listening_quiz' && (
+              <ShortListeningQuizModal
+                isOpen={activeHubActivity === 'listening_quiz'}
+                onClose={() => setActiveHubActivity(null)}
+                userId={user?.id || 'local-learner-1'}
+              />
+            )}
+            {activeHubActivity === 'speaking_prompt' && (
+              <SpeakingPromptModal
+                isOpen={activeHubActivity === 'speaking_prompt'}
+                onClose={() => setActiveHubActivity(null)}
+                userId={user?.id || 'local-learner-1'}
+              />
+            )}
+            {activeHubActivity === 'interview_sprint' && (
+              <InterviewSprintModal
+                isOpen={activeHubActivity === 'interview_sprint'}
+                onClose={() => setActiveHubActivity(null)}
+                userId={user?.id || 'local-learner-1'}
+                onOpenFullTrainer={() => {
+                  setActiveHubActivity(null);
+                  setIsActivityHubOpen(false);
+                  setActivePracticeStudio('interview');
+                }}
+              />
+            )}
 
-        {/* Interactive CEFR Curriculum Roadmap & Course Browser */}
-        <CurriculumBrowserModal
-          isOpen={isCurriculumBrowserOpen}
-          userProgress={curriculumProgressState}
-          initialLevel={user?.cefrLevel || 'A1'}
-          onClose={() => setIsCurriculumBrowserOpen(false)}
-          onSelectLesson={(lesson) => setActiveLesson(lesson)}
-        />
+            {/* Interactive Multi-turn Scenario Roleplay Modal */}
+            {Boolean(activeScenarioId) && (
+              <InteractiveScenarioModal
+                isOpen={Boolean(activeScenarioId)}
+                scenarioId={activeScenarioId}
+                userId={user?.id || 'local-learner-1'}
+                onClose={() => setActiveScenarioId(null)}
+                onStartLesson={(lessonId) => {
+                  const lesson = getCurriculumLesson(lessonId);
+                  if (lesson) {
+                    setActiveScenarioId(null);
+                    setActiveLesson(lesson);
+                  }
+                }}
+                onSessionComplete={() => {
+                  refreshCurriculum();
+                }}
+              />
+            )}
+
+            {/* Interactive CEFR Curriculum Roadmap & Course Browser */}
+            {isCurriculumBrowserOpen && (
+              <CurriculumBrowserModal
+                isOpen={isCurriculumBrowserOpen}
+                userProgress={curriculumProgressState}
+                initialLevel={user?.cefrLevel || 'A1'}
+                onClose={() => setIsCurriculumBrowserOpen(false)}
+                onSelectLesson={(lesson) => setActiveLesson(lesson)}
+              />
+            )}
+          </Suspense>
+        </ErrorBoundary>
 
         {/* Smart In-App Notification Toast */}
         {!isAnyModalOpen && activeNotification && (

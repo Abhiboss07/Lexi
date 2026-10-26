@@ -1,0 +1,54 @@
+{
+  "searchStates": {
+    "beforeFocus": true,
+    "focused": true,
+    "typing": true,
+    "cleared": true,
+    "blurred": true
+  },
+  "keyboardFocus": true,
+  "viewports": {
+    "320px": {
+      "width": 320,
+      "badgeVisible": false,
+      "badgeHeight": null,
+      "badgeWidth": null,
+      "errorBoxHeight": 277.25
+    },
+    "360px": {
+      "width": 360,
+      "badgeVisible": false,
+      "badgeHeight": null,
+      "badgeWidth": null,
+      "errorBoxHeight": 252
+    },
+    "390px": {
+      "width": 390,
+      "badgeVisible": false,
+      "badgeHeight": null,
+      "badgeWidth": null,
+      "errorBoxHeight": 252
+    },
+    "420px": {
+      "width": 420,
+      "badgeVisible": false,
+      "badgeHeight": null,
+      "badgeWidth": null,
+      "errorBoxHeight": 252
+    },
+    "768px": {
+      "width": 768,
+      "badgeVisible": false,
+      "badgeHeight": null,
+      "badgeWidth": null,
+      "errorBoxHeight": 252.75
+    },
+    "1280px": {
+      "width": 1280,
+      "badgeVisible": false,
+      "badgeHeight": null,
+      "badgeWidth": null,
+      "errorBoxHeight": 252.75
+    }
+  }
+}

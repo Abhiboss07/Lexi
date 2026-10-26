@@ -1,5 +1,6 @@
 import React from 'react';
 import { ArrowRight, Sparkles } from 'lucide-react';
+import { getAssetPath } from '../../utils/assetPath';
 
 interface PracticeHeroCardProps {
   onStartRecommendedPractice: () => void;
@@ -66,7 +67,7 @@ export const PracticeHeroCard: React.FC<PracticeHeroCardProps> = ({
         {/* Right 3D Character Illustration */}
         <div className="relative shrink-0 w-[125px] xs:w-[145px] sm:w-[170px] self-end flex items-end justify-center pointer-events-none select-none">
           <img
-            src="/assets/practice-hero-character.png"
+            src={getAssetPath('/assets/practice-hero-character.png')}
             alt="3D digital illustration of a student wearing headphones practicing English at a study desk with tablet and notebook"
             className="w-full h-auto max-h-[190px] xs:max-h-[215px] sm:max-h-[235px] object-contain transition-transform duration-300"
             loading="eager"

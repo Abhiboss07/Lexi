@@ -1,5 +1,6 @@
 import React from 'react';
 import type { QuickPickItem } from '../../types';
+import { getAssetPath } from '../../utils/assetPath';
 
 interface QuickPicksProps {
   items: QuickPickItem[];
@@ -46,7 +47,7 @@ export const QuickPicks: React.FC<QuickPicksProps> = ({
           >
             {/* Visual Icon / Artwork */}
             <img
-              src={item.iconAsset}
+              src={getAssetPath(item.iconAsset)}
               alt=""
               aria-hidden="true"
               className="w-10 h-10 rounded-xl object-contain shrink-0 select-none"
