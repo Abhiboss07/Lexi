@@ -9,36 +9,36 @@ interface HeroCardProps {
 export const HeroCard: React.FC<HeroCardProps> = ({ onStartLearning }) => {
   return (
     <section 
-      className="relative overflow-hidden rounded-[32px] border border-[#E4E7F7] p-4 xs:p-4.5 sm:p-5 shadow-[0_10px_30px_rgba(35,38,85,0.06)]"
+      className="relative overflow-hidden rounded-[32px] border border-[#E6D8B5] p-4 xs:p-4.5 sm:p-5 shadow-[0_10px_30px_rgba(127,1,31,0.04)] hardware-accelerated"
       style={{
-        background: 'radial-gradient(ellipse 65% 60% at 76% 52%, #E2DCFD 0%, #EBE6FD 30%, rgba(246, 245, 254, 0.5) 65%, transparent 100%), linear-gradient(135deg, #FFFFFF 0%, #FAF9FE 38%, #EFF1FD 100%)',
+        background: 'radial-gradient(ellipse 65% 60% at 76% 52%, #F5EBD0 0%, #FAF6ED 30%, rgba(255, 255, 255, 0.7) 65%, transparent 100%), linear-gradient(135deg, #FFFFFF 0%, #FAF8F2 38%, #F5EBD0 100%)',
       }}
       aria-labelledby="hero-heading"
     >
       <div className="relative flex flex-row items-center justify-between gap-1 xs:gap-2 sm:gap-3">
         {/* Left Editorial Copy Layer (higher z-index, strictly above artwork) */}
         <div className="relative z-10 flex-1 min-w-0 pr-0.5 sm:pr-1">
-          {/* Eyebrow (Single horizontal line matching updated reference) */}
-          <div className="text-[10px] xs:text-[10.5px] sm:text-[11.5px] font-bold uppercase tracking-[0.18em] text-[#5B618E] leading-tight mb-2 sm:mb-2.5 whitespace-nowrap">
+          {/* Eyebrow */}
+          <div className="text-[10px] xs:text-[10.5px] sm:text-[11.5px] font-bold uppercase tracking-[0.18em] text-[#7F011F] leading-tight mb-2 sm:mb-2.5 whitespace-nowrap">
             A BRIGHTER YOU
           </div>
 
           {/* Prominent Headline with balanced flow and comfortable line height */}
           <h1 id="hero-heading" className="text-[25px] xs:text-[28px] sm:text-[32px] font-extrabold leading-[1.16] tracking-tight">
-            <span className="text-[#15164B] block">Learn English</span>
-            <span className="text-[#545CA6] block mt-0.5">Your Way</span>
+            <span className="text-[#380712] block">Learn English</span>
+            <span className="text-[#7F011F] block mt-0.5">Your Way</span>
           </h1>
 
           {/* Supporting Copy with balanced rhythm and natural line wrapping */}
-          <p className="text-[11.5px] xs:text-[12.5px] sm:text-[13px] font-medium text-[#52577F] leading-[1.5] mt-2.5 sm:mt-3 max-w-[240px] xs:max-w-[270px]">
-            Real conversations. Fun stories. Useful skills for a confident you.
+          <p className="text-[11.5px] xs:text-[12.5px] sm:text-[13px] font-medium text-[#6B3441] leading-[1.5] mt-2.5 sm:mt-3 max-w-[240px] xs:max-w-[270px]">
+            Real conversations, clear lessons, and supportive daily practice.
           </p>
 
           {/* Primary CTA Button */}
           <div className="relative z-20 mt-3.5 sm:mt-4">
             <button
               onClick={onStartLearning}
-              className="inline-flex items-center justify-center gap-1.5 xs:gap-2 sm:gap-2.5 px-4 py-2 xs:px-4.5 xs:py-2.5 sm:px-5 sm:py-2.5 rounded-full bg-[#15164B] hover:bg-[#0E1038] text-white text-[12px] xs:text-[12.5px] sm:text-[13.5px] font-bold whitespace-nowrap transition-all shadow-[0_4px_16px_rgba(21,22,75,0.22)] hover:translate-y-[-1px] active:translate-y-[0px] focus:outline-hidden focus:ring-2 focus:ring-[#545CA6] focus:ring-offset-2 shrink-0 cursor-pointer"
+              className="inline-flex items-center justify-center gap-1.5 xs:gap-2 sm:gap-2.5 px-4 py-2 xs:px-4.5 xs:py-2.5 sm:px-5 sm:py-2.5 rounded-full bg-[#7F011F] hover:bg-[#630018] text-white text-[12px] xs:text-[12.5px] sm:text-[13.5px] font-bold whitespace-nowrap transition-all shadow-[0_4px_16px_rgba(127,1,31,0.28)] hover:translate-y-[-1px] active:translate-y-[0px] focus:outline-hidden focus:ring-2 focus:ring-[#7F011F] focus:ring-offset-2 shrink-0 cursor-pointer"
               aria-label="Start Learning English"
             >
               <span className="whitespace-nowrap">Start Learning</span>
@@ -48,10 +48,10 @@ export const HeroCard: React.FC<HeroCardProps> = ({ onStartLearning }) => {
 
           {/* Carousel Indicators (4 indicators matching reference) */}
           <div className="flex items-center gap-1.5 mt-3 sm:mt-3.5" aria-label="Slide 1 of 4 active">
-            <div className="w-5 xs:w-5.5 h-1.5 rounded-full bg-[#525BA4]" aria-current="true" />
-            <div className="w-1.5 h-1.5 rounded-full bg-[#DFE3F7]" />
-            <div className="w-1.5 h-1.5 rounded-full bg-[#DFE3F7]" />
-            <div className="w-1.5 h-1.5 rounded-full bg-[#DFE3F7]" />
+            <div className="w-5 xs:w-5.5 h-1.5 rounded-full bg-[#7F011F]" aria-current="true" />
+            <div className="w-1.5 h-1.5 rounded-full bg-[#E6D8B5]" />
+            <div className="w-1.5 h-1.5 rounded-full bg-[#E6D8B5]" />
+            <div className="w-1.5 h-1.5 rounded-full bg-[#E6D8B5]" />
           </div>
         </div>
 

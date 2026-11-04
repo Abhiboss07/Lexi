@@ -22,40 +22,40 @@ export const LexiLogoSymbol: React.FC<{ size?: number; className?: string }> = (
       aria-hidden="true"
     >
       <defs>
-        {/* Primary Lexi Gradient */}
+        {/* Primary Lexi Wine Red Gradient */}
         <linearGradient id="lexi-grad-primary" x1="8" y1="8" x2="38" y2="40" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#4338CA" />
-          <stop offset="60%" stopColor="#232655" />
-          <stop offset="100%" stopColor="#1E1C44" />
+          <stop offset="0%" stopColor="#9B1B30" />
+          <stop offset="60%" stopColor="#7F011F" />
+          <stop offset="100%" stopColor="#520014" />
         </linearGradient>
 
-        {/* Accent Soft Lavender Loop */}
+        {/* Accent Soft Rose-Sand Loop */}
         <linearGradient id="lexi-grad-accent" x1="16" y1="12" x2="38" y2="34" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#818CF8" />
-          <stop offset="100%" stopColor="#646AA4" />
+          <stop offset="0%" stopColor="#C2415C" />
+          <stop offset="100%" stopColor="#9B1B30" />
         </linearGradient>
 
-        {/* Warm Sparkle Glow */}
+        {/* Warm Gold Sparkle */}
         <linearGradient id="lexi-spark-grad" x1="33" y1="6" x2="41" y2="14" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#FF8A65" />
-          <stop offset="100%" stopColor="#FF6243" />
+          <stop offset="0%" stopColor="#F59E0B" />
+          <stop offset="100%" stopColor="#D97706" />
         </linearGradient>
 
         {/* Soft Drop Shadow Filter for Depth */}
         <filter id="lexi-glow" x="0" y="0" width="48" height="48" filterUnits="userSpaceOnUse">
-          <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#232655" floodOpacity="0.12" />
+          <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#7F011F" floodOpacity="0.16" />
         </filter>
       </defs>
 
-      {/* Outer rounded speech & learning tile base */}
+      {/* Outer rounded speech & learning tile base with warm sand fill */}
       <rect
         x="4"
         y="4"
         width="40"
         height="40"
         rx="12"
-        fill="#F0F2FE"
-        stroke="#E0E3FA"
+        fill="#FAF6ED"
+        stroke="#E6D8B5"
         strokeWidth="1.5"
       />
 
@@ -128,15 +128,15 @@ export const LexiLogo: React.FC<LexiLogoProps> = ({
           <div className="absolute -inset-2 bg-gradient-to-r from-[#646AA4]/20 to-[#818CF8]/20 rounded-2xl blur-md -z-10" />
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="text-4xl font-extrabold tracking-tight text-[#222149]">
+          <span className="text-4xl font-extrabold tracking-tight text-[#380712]">
             Lexi
           </span>
-          <span className="text-[#FF6243] text-2xl font-bold select-none" aria-hidden="true">
+          <span className="text-[#D97706] text-2xl font-bold select-none" aria-hidden="true">
             ✦
           </span>
         </div>
         {showSubtitle && (
-          <p className="text-sm font-medium text-[#646AA4] mt-1 tracking-wider uppercase">
+          <p className="text-sm font-semibold text-[#7F011F] mt-1 tracking-wider uppercase">
             Your English Companion
           </p>
         )}
@@ -149,15 +149,15 @@ export const LexiLogo: React.FC<LexiLogoProps> = ({
       <LexiLogoSymbol size={iconPx} />
       <div className="flex flex-col">
         <div className="flex items-center gap-1">
-          <span className={`${titleSizes[size]} font-extrabold tracking-tight text-[#222149] leading-tight`}>
+          <span className={`${titleSizes[size]} font-extrabold tracking-tight text-[#380712] leading-tight`}>
             Lexi
           </span>
-          <span className="text-[#646AA4] text-sm select-none" aria-hidden="true">
+          <span className="text-[#D97706] text-sm select-none" aria-hidden="true">
             ✦
           </span>
         </div>
         {showSubtitle && (
-          <p className="text-[11px] font-medium text-[#7D82A8] -mt-0.5 tracking-wide leading-none">
+          <p className="text-[11px] font-semibold text-[#7F011F] -mt-0.5 tracking-wide leading-none">
             Your English Companion
           </p>
         )}

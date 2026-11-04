@@ -384,10 +384,10 @@ export function App() {
         Skip to main content
       </a>
 
-      <div className="min-h-screen bg-[#E7EAFD] flex items-center justify-center p-0 sm:py-6">
+      <div className="min-h-screen bg-[#F5EBD0] flex items-center justify-center p-0 sm:py-6">
         {/* Device Frame / Screen Canvas */}
         <main 
-          className="w-full sm:max-w-[430px] min-h-screen sm:min-h-[880px] bg-[#F6F7FE] sm:rounded-[40px] sm:shadow-2xl sm:border-[6px] sm:border-white/80 overflow-hidden flex flex-col relative"
+          className="w-full sm:max-w-[430px] min-h-screen sm:min-h-[880px] bg-[#FAF6ED] sm:rounded-[40px] sm:shadow-2xl sm:border-[6px] sm:border-white/90 overflow-hidden flex flex-col relative"
           role="region"
           aria-label="Lexi Application"
         >

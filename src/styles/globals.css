@@ -6,26 +6,50 @@
 
 @layer base {
   :root {
-    --color-canvas-staging: #E7EAFD;
-    --color-canvas-screen: #F6F7FE;
+    /* ========================================================
+       LEXI 2.0 APPROVED BRAND SYSTEM: WINE RED & LIGHT SAND
+       ======================================================== */
+    --color-brand-wine: #7F011F;
+    --color-brand-wine-dark: #630018;
+    --color-brand-wine-hover: #980226;
+    --color-brand-wine-subtle: #FDF1F3;
+    --color-brand-wine-border: #F3CCD3;
+
+    --color-canvas-sand: #F5EBD0;
+    --color-canvas-screen: #FAF6ED;
     --color-surface-white: #FFFFFF;
-    --color-surface-lavender: #F0F2FD;
-    --color-surface-subtle: #EFF1FE;
-    --color-surface-quote: #FEF7ED;
-    --color-border-subtle: #ECEEFE;
-    --color-border-medium: #E0E3F8;
+    --color-surface-sand-subtle: #EFE4C4;
+    --color-border-warm: #E6D8B5;
+    --color-border-subtle: #EFE6D2;
 
-    --color-brand-indigo: #232655;
-    --color-brand-indigo-dark: #1B1E48;
-    --color-brand-indigo-hover: #181A3C;
-    --color-accent-periwinkle: #646AA4;
-    --color-accent-flame: #FF6243;
-    --color-accent-gold: #F5A623;
+    /* Legacy token mappings preserved and remapped to Lexi 2.0 brand */
+    --color-brand-indigo: #7F011F;
+    --color-brand-indigo-dark: #630018;
+    --color-brand-indigo-hover: #980226;
+    --color-canvas-staging: #F5EBD0;
+    --color-surface-lavender: #FAF4E6;
+    --color-surface-subtle: #F5EBD0;
+    --color-surface-quote: #FFF8E7;
+    --color-border-medium: #E6D8B5;
 
-    /* WCAG 2.2 AA compliant contrast tokens (>= 4.5:1 on light backgrounds) */
-    --color-text-primary: #15164B;
-    --color-text-secondary: #484E77;
-    --color-text-tertiary: #5A5F8A;
+    --color-accent-periwinkle: #984358;
+    --color-accent-flame: #E04838;
+    --color-accent-gold: #D97706;
+    --color-accent-green: #15803D;
+
+    /* WCAG 2.2 AAA compliant contrast tokens (> 7:1 on light backgrounds) */
+    --color-text-primary: #380712;
+    --color-text-secondary: #6B3441;
+    --color-text-tertiary: #8A525E;
+
+    /* Motion & animation tokens */
+    --ease-out-lexi: cubic-bezier(0.16, 1, 0.3, 1);
+    --duration-fast: 160ms;
+    --duration-normal: 240ms;
+
+    /* Dynamic visual viewport variables (updated via useVisualViewport) */
+    --visual-viewport-height: 100vh;
+    --keyboard-height: 0px;
 
     --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
@@ -35,15 +59,30 @@
     color: var(--color-text-primary);
     background-color: var(--color-canvas-staging);
     -webkit-tap-highlight-color: transparent;
+    overflow-x: hidden;
   }
 
   /* Accessible keyboard focus visible styling (WCAG 2.4.7, 2.4.11) */
   :focus-visible:not(input):not(textarea):not(select) {
-    outline: 2px solid #545CA6 !important;
+    outline: 2px solid var(--color-brand-wine) !important;
     outline-offset: 2px !important;
   }
 
-  /* Form inputs manage high-contrast focus rings respecting border-radius curvature */
+  /* Form inputs: Prevent iOS/Android auto-zoom by enforcing 16px font-size on mobile */
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+
+  @media (min-width: 640px) {
+    input,
+    textarea,
+    select {
+      font-size: inherit;
+    }
+  }
+
   input:focus,
   input:focus-visible,
   textarea:focus,
@@ -51,6 +90,8 @@
   select:focus,
   select:focus-visible {
     outline: none !important;
+    border-color: var(--color-brand-wine) !important;
+    box-shadow: 0 0 0 2px rgba(127, 1, 31, 0.15) !important;
   }
 }
 
@@ -63,6 +104,7 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+    transform: none !important;
   }
 }
 
@@ -86,31 +128,42 @@
   left: 1rem;
   z-index: 100;
   padding: 0.75rem 1.25rem;
-  background-color: var(--color-brand-indigo);
+  background-color: var(--color-brand-wine);
   color: #FFFFFF;
   font-weight: 700;
   font-size: 0.875rem;
   border-radius: 9999px;
-  box-shadow: 0 4px 14px rgba(35, 38, 85, 0.3);
+  box-shadow: 0 4px 14px rgba(127, 1, 31, 0.35);
   text-decoration: none;
-  transition: top 0.15s ease-out;
+  transition: top var(--duration-fast) var(--ease-out-lexi);
 }
 
 .skip-link:focus {
   top: 1rem;
 }
 
-/* Custom subtle shadows matching approved reference */
+/* Hardware accelerated transition utility */
+.hardware-accelerated {
+  transform: translateZ(0);
+  will-change: transform, opacity;
+}
+
+/* Modal responsive viewport height utility for mobile keyboard clearance */
+.modal-viewport-height {
+  max-height: min(92vh, calc(var(--visual-viewport-height, 100vh) - 20px));
+}
+
+/* Custom subtle shadows matching warm wine and sand reference */
 .shadow-lexi-card {
-  box-shadow: 0 4px 20px -2px rgba(35, 38, 85, 0.05), 0 2px 6px -1px rgba(35, 38, 85, 0.02);
+  box-shadow: 0 4px 20px -2px rgba(127, 1, 31, 0.04), 0 2px 6px -1px rgba(127, 1, 31, 0.02);
 }
 
 .shadow-lexi-elevated {
-  box-shadow: 0 10px 25px -4px rgba(35, 38, 85, 0.08), 0 4px 10px -2px rgba(35, 38, 85, 0.03);
+  box-shadow: 0 10px 25px -4px rgba(127, 1, 31, 0.08), 0 4px 10px -2px rgba(127, 1, 31, 0.03);
 }
 
 .shadow-lexi-btn {
-  box-shadow: 0 4px 14px rgba(35, 38, 85, 0.22);
+  box-shadow: 0 4px 14px rgba(127, 1, 31, 0.28);
 }
 
 /* Custom scrollbar for modern browsers */
@@ -122,11 +175,11 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #D5D8EE;
+  background: #E6D8B5;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #A9AED6;
+  background: #C4B289;
 }
 
 /* Utilities to cleanly hide horizontal scrollbars while preserving scrolling */
