@@ -48,6 +48,15 @@ export function useModalFocusTrap<T extends HTMLElement = HTMLDivElement>({
       const container = containerRef.current;
       if (!container) return;
 
+      // Never steal focus if the user already clicked/focused an input or textarea
+      const currentActive = document.activeElement as HTMLElement | null;
+      if (currentActive && container.contains(currentActive)) {
+        const tag = currentActive.tagName.toLowerCase();
+        if (tag === 'input' || tag === 'textarea' || tag === 'select') {
+          return;
+        }
+      }
+
       if (initialFocusRef?.current) {
         initialFocusRef.current.focus();
       } else {
