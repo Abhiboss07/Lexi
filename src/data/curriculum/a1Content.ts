@@ -75,6 +75,13 @@ export const A1_LESSONS: Record<string, CurriculumLesson> = {
     completionCriteria: { minScorePercent: 80, requireAllActivities: true },
     vocabulary: [
       {
+        word: 'hello',
+        phoneticIpa: '/həˈloʊ/',
+        partOfSpeech: 'interjection',
+        definition: 'A friendly greeting used when meeting someone or answering a call.',
+        exampleSentence: 'Hello! Welcome to our English class.',
+      },
+      {
         word: 'morning',
         phoneticIpa: '/ˈmɔːrnɪŋ/',
         partOfSpeech: 'noun',
@@ -82,11 +89,25 @@ export const A1_LESSONS: Record<string, CurriculumLesson> = {
         exampleSentence: 'Good morning, how are you today?',
       },
       {
+        word: 'afternoon',
+        phoneticIpa: '/ˌæftərˈnuːn/',
+        partOfSpeech: 'noun',
+        definition: 'The time from midday (12:00 PM) until around 5:00 or 6:00 PM.',
+        exampleSentence: 'Good afternoon, it is sunny outside.',
+      },
+      {
         word: 'evening',
         phoneticIpa: '/ˈiːvnɪŋ/',
         partOfSpeech: 'noun',
         definition: 'The period of time at the end of the day, usually between 6 PM and nightfall.',
         exampleSentence: 'Good evening! Welcome to the hotel.',
+      },
+      {
+        word: 'goodbye',
+        phoneticIpa: '/ɡʊdˈbaɪ/',
+        partOfSpeech: 'interjection',
+        definition: 'A polite word said when leaving someone or ending a conversation.',
+        exampleSentence: 'Goodbye, have a pleasant evening!',
       },
       {
         word: 'later',
@@ -98,13 +119,13 @@ export const A1_LESSONS: Record<string, CurriculumLesson> = {
     ],
     grammar: [
       {
-        topic: 'Time-Based Salutations',
-        ruleSummary: 'Use "Good morning" before 12:00 PM, "Good afternoon" between 12:00 PM and ~5:00 PM, and "Good evening" after 5:00 PM. "Good night" is exclusively used to say goodbye or before sleeping.',
+        topic: 'Greetings, Core Sounds & Time Salutations',
+        ruleSummary: 'English greetings use 5 primary vowels (A, E, I, O, U) with smooth rising-falling pitch. Say "Good morning" before 12:00 PM, "Good afternoon" between 12:00 PM and 5:00 PM, and "Good evening" after 5:00 PM. Note that "Good night" is exclusively used to say farewell before sleeping, never as a greeting upon arrival.',
         exampleSentences: [
-          'Good morning, everyone!',
+          'Hello, good morning everyone!',
           'Good afternoon, Mr. Miller.',
           'Good evening, can I help you?',
-          'Good night, have a wonderful sleep.',
+          'Good night, have a restful sleep.',
         ],
       },
     ],
@@ -173,6 +194,20 @@ export const A1_LESSONS: Record<string, CurriculumLesson> = {
     completionCriteria: { minScorePercent: 80, requireAllActivities: true },
     vocabulary: [
       {
+        word: 'name',
+        phoneticIpa: '/neɪm/',
+        partOfSpeech: 'noun',
+        definition: 'A word or set of words by which a person or thing is known and addressed.',
+        exampleSentence: 'My name is Lucas.',
+      },
+      {
+        word: 'friend',
+        phoneticIpa: '/frend/',
+        partOfSpeech: 'noun',
+        definition: 'A person whom one knows and with whom one has a bond of mutual affection.',
+        exampleSentence: 'This is my friend from university.',
+      },
+      {
         word: 'pleasure',
         phoneticIpa: '/ˈpleʒər/',
         partOfSpeech: 'noun',
@@ -189,11 +224,12 @@ export const A1_LESSONS: Record<string, CurriculumLesson> = {
     ],
     grammar: [
       {
-        topic: 'Verb "to be" in Present Simple',
-        ruleSummary: 'I am (I\'m), You are (You\'re), He/She/It is (He\'s/She\'s/It\'s), We are (We\'re), They are (They\'re).',
+        topic: 'Subject Pronouns & Verb "to be" (Present Simple)',
+        ruleSummary: 'English sentences require a subject pronoun: I am (I\'m), You are (You\'re), He/She/It is (He\'s/She\'s/It\'s), We are (We\'re), and They are (They\'re). To introduce yourself, use "I am [Name]" or "My name is [Name]". To introduce others, say "This is [Name], my [friend/colleague]".',
         exampleSentences: [
           'I am Lucas from Toronto.',
-          'She is an architect.',
+          'My name is Maria, nice to meet you.',
+          'This is my friend, David.',
           'They are our new neighbours.',
         ],
       },

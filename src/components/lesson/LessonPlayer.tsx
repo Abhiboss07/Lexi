@@ -21,6 +21,7 @@ import {
   PronunciationPromptView,
   MatchingView,
   WritingView,
+  playBrowserSpeech,
 } from './ActivityViews';
 import { LessonCompletionSummary } from './LessonCompletionSummary';
 
@@ -44,6 +45,7 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({
   const [isLessonFinished, setIsLessonFinished] = useState(false);
   const [scoreResult, setScoreResult] = useState<LessonScoreResult | null>(null);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [showConceptGuide, setShowConceptGuide] = useState(false);
   const [isPersisting, setIsPersisting] = useState(false);
   const [persistenceError, setPersistenceError] = useState<string | null>(null);
 
@@ -266,6 +268,82 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({
             />
           ) : currentActivity ? (
             <div className="space-y-4">
+              {/* Standardized Concept Guide / Orientation Bar */}
+              {(lesson.grammar || lesson.vocabulary || lesson.objectives) && (
+                <div className="rounded-2xl border border-[#E6D8B5] bg-[#FAF6ED] overflow-hidden transition-all shadow-xs">
+                  <button
+                    type="button"
+                    onClick={() => setShowConceptGuide((prev) => !prev)}
+                    className="w-full px-3.5 py-2 flex items-center justify-between text-left cursor-pointer hover:bg-[#F3EAD3] transition-colors"
+                    aria-expanded={showConceptGuide}
+                    aria-label="Toggle Lesson Concept Guide"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-[13px]">💡</span>
+                      <span className="text-[11.5px] font-extrabold text-[#7F011F] tracking-wide uppercase">
+                        Lesson Guide: {lesson.grammar?.[0]?.topic || lesson.title}
+                      </span>
+                    </div>
+                    <span className="text-[11px] font-bold text-[#8A525E]">
+                      {showConceptGuide ? 'Hide' : 'Review Concept'}
+                    </span>
+                  </button>
+
+                  {showConceptGuide && (
+                    <div className="px-3.5 pb-3 pt-1 space-y-2.5 text-[12px] border-t border-[#EFE6D2] animate-in fade-in duration-150">
+                      {lesson.objectives && lesson.objectives.length > 0 && (
+                        <div>
+                          <span className="font-bold text-[#380712] block mb-0.5">Objective:</span>
+                          <p className="text-[#6B3441] leading-relaxed">
+                            {lesson.objectives.map((o) => o.description).join(' • ')}
+                          </p>
+                        </div>
+                      )}
+
+                      {lesson.grammar && lesson.grammar.length > 0 && (
+                        <div className="p-2.5 rounded-xl bg-white border border-[#E6D8B5]">
+                          <span className="font-bold text-[#7F011F] block text-[11px] uppercase tracking-wide">
+                            Rule: {lesson.grammar[0].topic}
+                          </span>
+                          <p className="text-[#380712] mt-0.5 leading-relaxed font-medium">
+                            {lesson.grammar[0].ruleSummary}
+                          </p>
+                          {lesson.grammar[0].exampleSentences && (
+                            <div className="mt-1.5 pt-1.5 border-t border-[#FAF6ED] space-y-0.5">
+                              {lesson.grammar[0].exampleSentences.slice(0, 2).map((ex, i) => (
+                                <p key={i} className="text-[#6B3441] italic text-[11px]">
+                                  "{ex}"
+                                </p>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {lesson.vocabulary && lesson.vocabulary.length > 0 && (
+                        <div>
+                          <span className="font-bold text-[#380712] block mb-1">Key Vocabulary:</span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {lesson.vocabulary.map((v, i) => (
+                              <button
+                                key={i}
+                                type="button"
+                                onClick={() => playBrowserSpeech(v.word)}
+                                className="px-2 py-0.5 rounded-lg bg-white border border-[#E6D8B5] text-[#7F011F] text-[11px] font-bold flex items-center gap-1 hover:bg-[#FDF1F3] cursor-pointer"
+                                aria-label={`Listen to ${v.word}`}
+                              >
+                                <span>{v.word}</span>
+                                {v.phoneticIpa && <span className="text-[#8A525E] font-normal">{v.phoneticIpa}</span>}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {currentActivity.kind === 'multiple-choice' && (
                 <MultipleChoiceView
                   activity={currentActivity}
@@ -399,7 +477,7 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({
                   type="button"
                   onClick={handleNextActivity}
                   disabled={isPersisting}
-                  className="w-full py-3.5 rounded-full bg-[#1E224E] hover:bg-[#141738] disabled:bg-[#8E93B8] text-white text-[14px] font-bold shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-3.5 rounded-full bg-[#7F011F] hover:bg-[#630018] disabled:bg-[#8A525E] text-white text-[14px] font-bold shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <span>{isPersisting ? 'Saving Progress...' : 'Continue'}</span>
                   <ArrowRight className="w-4 h-4 stroke-[2.5]" />
@@ -410,7 +488,7 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({
                 type="button"
                 disabled={!isAnswerProvided()}
                 onClick={handleCheckAnswer}
-                className="w-full py-3.5 rounded-full bg-[#1E224E] hover:bg-[#141738] disabled:bg-[#D4D8EE] disabled:cursor-not-allowed text-white text-[14px] font-bold shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-3.5 rounded-full bg-[#7F011F] hover:bg-[#630018] disabled:bg-[#EFE6D2] disabled:text-[#8A525E] disabled:cursor-not-allowed text-white text-[14px] font-bold shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>Check Answer</span>
                 <ArrowRight className="w-4 h-4 stroke-[2.5]" />
