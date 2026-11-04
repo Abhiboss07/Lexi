@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Lexi 2.0 Launch Video (16:9)</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=block"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html, body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #F5EBD0;
+        font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+        color: #380712;
+      }
+      .scene {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 1920px;
+        height: 1080px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+      .wine-btn {
+        background: #7F011F;
+        color: #FFFFFF;
+        font-weight: 800;
+        border-radius: 9999px;
+        box-shadow: 0 12px 32px rgba(127, 1, 31, 0.35);
+      }
+      .badge-pill {
+        background: #FAF6ED;
+        border: 2px solid #E6D8B5;
+        color: #7F011F;
+        font-weight: 700;
+        border-radius: 9999px;
+      }
+      .app-frame {
+        border-radius: 36px;
+        box-shadow: 0 24px 60px rgba(127, 1, 31, 0.15), 0 4px 16px rgba(0,0,0,0.06);
+        border: 6px solid #FFFFFF;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="20"
+      data-width="1920"
+      data-height="1080"
+    >
+      <!-- SCENE 1: THE HOOK & BRAND (0.0s – 4.5s) -->
+      <div id="scene1" class="scene clip" data-start="0" data-duration="4.5">
+        <div id="s1-content" style="text-align: center; display: flex; flex-direction: column; align-items: center;">
+          <div id="s1-logo" style="margin-bottom: 24px; display: flex; align-items: center; gap: 16px;">
+            <svg width="88" height="88" viewBox="0 0 48 48" fill="none">
+              <rect x="4" y="4" width="40" height="40" rx="12" fill="#FAF6ED" stroke="#E6D8B5" stroke-width="2"/>
+              <path d="M15 13C15 11.8954 15.8954 11 17 11H19C20.1046 11 21 11.8954 21 13V27.5C21 28.3284 21.6716 29 22.5 29H32C33.1046 29 34 29.8954 34 31C34 32.1046 33.1046 33 32 33H19C16.7909 33 15 31.2091 15 29V13Z" fill="#7F011F"/>
+              <path d="M23 15.5C23 14.1193 24.1193 13 25.5 13H28.5C31.5376 13 34 15.4624 34 18.5C34 21.5376 31.5376 24 28.5 24H25.5C24.1193 24 23 22.8807 23 21.5V15.5Z" fill="#9B1B30"/>
+              <path d="M37 6C37 9 39.5 11 42 11C39.5 11 37 13 37 16C37 13 34.5 11 32 11C34.5 11 37 9 37 6Z" fill="#B45309"/>
+            </svg>
+            <span style="font-size: 72px; font-weight: 900; letter-spacing: -0.04em; color: #380712;">Lexi</span>
+            <span style="font-size: 54px; color: #B45309; margin-top: -12px;">✦</span>
+          </div>
+          <h1 id="s1-headline" style="font-size: 64px; font-weight: 900; line-height: 1.15; letter-spacing: -0.03em; color: #380712; margin-bottom: 16px;">
+            English Learning Reimagined.
+          </h1>
+          <p id="s1-sub" style="font-size: 30px; font-weight: 700; color: #7F011F; letter-spacing: -0.01em;">
+            No ads. No clutter. Systematic, natural English fluency.
+          </p>
+        </div>
+      </div>
+
+      <!-- SCENE 2: INTERFACE & CURRICULUM FLOW (4.5s – 10.5s) -->
+      <div id="scene2" class="scene clip" data-start="4.5" data-duration="6.0">
+        <div style="position: absolute; top: 70px; text-align: center; width: 100%;">
+          <div id="s2-tag" class="badge-pill" style="display: inline-block; padding: 8px 24px; font-size: 28px; margin-bottom: 12px; letter-spacing: 0.05em; text-transform: uppercase;">
+            CEFR A1 to B2 Pathway
+          </div>
+          <h2 id="s2-headline" style="font-size: 56px; font-weight: 900; letter-spacing: -0.03em; color: #380712;">
+            Real Conversations Over Drills
+          </h2>
+        </div>
+
+        <div style="position: absolute; bottom: 80px; display: flex; align-items: center; justify-content: center; gap: 40px; width: 100%;">
+          <!-- Home Screen Mockup -->
+          <div id="s2-mock-1" class="app-frame" style="width: 360px; height: 620px; overflow: hidden; background: #FAF6ED;">
+            <img src="assets/screen-home.png" style="width: 100%; height: 100%; object-fit: cover; object-position: top;" alt="Lexi Home" />
+          </div>
+          <!-- Practice Screen Mockup -->
+          <div id="s2-mock-2" class="app-frame" style="width: 360px; height: 620px; overflow: hidden; background: #FAF6ED;">
+            <img src="assets/screen-practice.png" style="width: 100%; height: 100%; object-fit: cover; object-position: top;" alt="Lexi Practice" />
+          </div>
+        </div>
+      </div>
+
+      <!-- SCENE 3: AI COACH & SPEAKING CONFIDENCE (10.5s – 16.0s) -->
+      <div id="scene3" class="scene clip" data-start="10.5" data-duration="5.5">
+        <div style="position: absolute; top: 70px; text-align: center; width: 100%;">
+          <div id="s3-tag" class="badge-pill" style="display: inline-block; padding: 8px 24px; font-size: 28px; margin-bottom: 12px; letter-spacing: 0.05em; text-transform: uppercase;">
+            Adaptive Speech & Voice
+          </div>
+          <h2 id="s3-headline" style="font-size: 56px; font-weight: 900; letter-spacing: -0.03em; color: #380712;">
+            Speak With Natural Confidence
+          </h2>
+        </div>
+
+        <div style="position: absolute; bottom: 70px; display: flex; align-items: center; justify-content: center; gap: 48px; width: 100%;">
+          <div id="s3-mock-progress" class="app-frame" style="width: 380px; height: 640px; overflow: hidden; background: #FAF6ED;">
+            <img src="assets/screen-progress.png" style="width: 100%; height: 100%; object-fit: cover; object-position: top;" alt="Lexi Progress" />
+          </div>
+          <div id="s3-card" style="width: 520px; background: #FFFFFF; border: 2px solid #E6D8B5; border-radius: 28px; padding: 36px; box-shadow: 0 16px 40px rgba(127,1,31,0.08);">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+              <span style="display: inline-block; width: 14px; height: 14px; border-radius: 9999px; background: #15803D;"></span>
+              <span style="font-weight: 800; font-size: 28px; color: #7F011F; text-transform: uppercase;">AI Conversation Coach</span>
+            </div>
+            <p style="font-size: 32px; font-weight: 700; color: #380712; line-height: 1.35; margin-bottom: 24px;">
+              "Your intonation was natural, and your choice of 'pleasure to meet you' was spot on!"
+            </p>
+            <div style="display: flex; gap: 12px;" data-layout-ignore="true">
+              <span class="badge-pill" style="padding: 8px 18px; font-size: 24px;">Fluency 98%</span>
+              <span class="badge-pill" style="padding: 8px 18px; font-size: 24px;">CEFR B1 Active</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCENE 4: OUTRO & CALL TO ACTION (16.0s – 20.0s) -->
+      <div id="scene4" class="scene clip" data-start="16.0" data-duration="4.0">
+        <div id="s4-content" style="text-align: center; display: flex; flex-direction: column; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 18px; margin-bottom: 20px;">
+            <svg width="96" height="96" viewBox="0 0 48 48" fill="none">
+              <rect x="4" y="4" width="40" height="40" rx="12" fill="#FAF6ED" stroke="#E6D8B5" stroke-width="2"/>
+              <path d="M15 13C15 11.8954 15.8954 11 17 11H19C20.1046 11 21 11.8954 21 13V27.5C21 28.3284 21.6716 29 22.5 29H32C33.1046 29 34 29.8954 34 31C34 32.1046 33.1046 33 32 33H19C16.7909 33 15 31.2091 15 29V13Z" fill="#7F011F"/>
+              <path d="M23 15.5C23 14.1193 24.1193 13 25.5 13H28.5C31.5376 13 34 15.4624 34 18.5C34 21.5376 31.5376 24 28.5 24H25.5C24.1193 24 23 22.8807 23 21.5V15.5Z" fill="#9B1B30"/>
+              <path d="M37 6C37 9 39.5 11 42 11C39.5 11 37 13 37 16C37 13 34.5 11 32 11C34.5 11 37 9 37 6Z" fill="#B45309"/>
+            </svg>
+            <span style="font-size: 80px; font-weight: 900; letter-spacing: -0.04em; color: #380712;">Lexi</span>
+            <span style="font-size: 60px; color: #B45309; margin-top: -14px;">✦</span>
+          </div>
+
+          <h2 style="font-size: 46px; font-weight: 800; color: #7F011F; margin-bottom: 28px;">
+            Your English Companion
+          </h2>
+
+          <div style="display: flex; gap: 16px; margin-bottom: 36px;">
+            <div class="badge-pill" style="padding: 12px 28px; font-size: 28px;">100% Free</div>
+            <div class="badge-pill" style="padding: 12px 28px; font-size: 28px;">Private & Offline-First</div>
+            <div class="badge-pill" style="padding: 12px 28px; font-size: 28px;">Zero Ads</div>
+          </div>
+
+          <div id="s4-btn" class="wine-btn" style="padding: 22px 58px; font-size: 30px; cursor: pointer; letter-spacing: -0.01em;">
+            Start Learning Today
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GSAP TIMELINE CHOREOGRAPHY (Contract Compliant) -->
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // Scene 1 Tweens (0s - 4.5s) - First frame has initial presence
+      tl.fromTo("#s1-logo", { scale: 0.9, opacity: 0.7 }, { scale: 1, opacity: 1, duration: 0.8, ease: "power2.out" }, 0.0);
+      tl.fromTo("#s1-headline", { y: 20, opacity: 0.6 }, { y: 0, opacity: 1, duration: 0.8, ease: "power2.out" }, 0.0);
+      tl.fromTo("#s1-sub", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power2.out" }, 0.8);
+      tl.to("#s1-content", { opacity: 0, scale: 0.96, duration: 0.6, ease: "power2.in" }, 3.9);
+
+      // Scene 2 Tweens (4.5s - 10.5s)
+      tl.fromTo("#s2-tag", { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "power2.out" }, 4.7);
+      tl.fromTo("#s2-headline", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power2.out" }, 5.0);
+      tl.fromTo("#s2-mock-1", { x: -60, opacity: 0 }, { x: 0, opacity: 1, duration: 1.0, ease: "power2.out" }, 5.3);
+      tl.fromTo("#s2-mock-2", { x: 60, opacity: 0 }, { x: 0, opacity: 1, duration: 1.0, ease: "power2.out" }, 5.6);
+      // Gentle float to avoid dead stretch
+      tl.to("#s2-mock-1", { y: -12, duration: 2.0, ease: "sine.inOut", yoyo: true, repeat: 1 }, 6.8);
+      tl.to("#s2-mock-2", { y: 12, duration: 2.0, ease: "sine.inOut", yoyo: true, repeat: 1 }, 6.8);
+      tl.to(["#s2-tag", "#s2-headline", "#s2-mock-1", "#s2-mock-2"], { opacity: 0, y: -20, duration: 0.5, ease: "power2.in" }, 10.0);
+
+      // Scene 3 Tweens (10.5s - 16.0s)
+      tl.fromTo("#s3-tag", { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "power2.out" }, 10.7);
+      tl.fromTo("#s3-headline", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power2.out" }, 11.0);
+      tl.fromTo("#s3-mock-progress", { scale: 0.9, opacity: 0 }, { scale: 1, opacity: 1, duration: 1.0, ease: "power2.out" }, 11.3);
+      tl.fromTo("#s3-card", { x: 40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.9, ease: "power2.out" }, 11.8);
+      tl.to(["#s3-tag", "#s3-headline", "#s3-mock-progress", "#s3-card"], { opacity: 0, scale: 0.96, duration: 0.5, ease: "power2.in" }, 15.5);
+
+      // Scene 4 Tweens (16.0s - 20.0s)
+      tl.fromTo("#s4-content", { scale: 0.88, opacity: 0 }, { scale: 1, opacity: 1, duration: 1.0, ease: "power2.out" }, 16.2);
+      tl.fromTo("#s4-btn", { scale: 0.95 }, { scale: 1.05, duration: 1.2, yoyo: true, repeat: 1, ease: "sine.inOut" }, 17.2);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

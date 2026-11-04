@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Lexi 2.0 Launch Video (9:16 Vertical)</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=block"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html, body {
+        margin: 0;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: #F5EBD0;
+        font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+        color: #380712;
+      }
+      .scene {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 1080px;
+        height: 1920px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        padding: 80px 60px;
+      }
+      .wine-btn {
+        background: #7F011F;
+        color: #FFFFFF;
+        font-weight: 800;
+        border-radius: 9999px;
+        box-shadow: 0 16px 36px rgba(127, 1, 31, 0.35);
+      }
+      .badge-pill {
+        background: #FAF6ED;
+        border: 2px solid #E6D8B5;
+        color: #7F011F;
+        font-weight: 700;
+        border-radius: 9999px;
+      }
+      .app-frame-vert {
+        width: 680px;
+        height: 1100px;
+        border-radius: 48px;
+        box-shadow: 0 32px 80px rgba(127, 1, 31, 0.18), 0 8px 24px rgba(0,0,0,0.08);
+        border: 8px solid #FFFFFF;
+        overflow: hidden;
+        background: #FAF6ED;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="20"
+      data-width="1080"
+      data-height="1920"
+    >
+      <!-- SCENE 1: THE HOOK & BRAND (0.0s – 4.5s) -->
+      <div id="v-scene1" class="scene clip" data-start="0" data-duration="4.5">
+        <div id="vs1-content" style="text-align: center; display: flex; flex-direction: column; align-items: center;">
+          <div id="vs1-logo" style="margin-bottom: 40px; display: flex; align-items: center; gap: 20px;">
+            <svg width="112" height="112" viewBox="0 0 48 48" fill="none">
+              <rect x="4" y="4" width="40" height="40" rx="12" fill="#FAF6ED" stroke="#E6D8B5" stroke-width="2"/>
+              <path d="M15 13C15 11.8954 15.8954 11 17 11H19C20.1046 11 21 11.8954 21 13V27.5C21 28.3284 21.6716 29 22.5 29H32C33.1046 29 34 29.8954 34 31C34 32.1046 33.1046 33 32 33H19C16.7909 33 15 31.2091 15 29V13Z" fill="#7F011F"/>
+              <path d="M23 15.5C23 14.1193 24.1193 13 25.5 13H28.5C31.5376 13 34 15.4624 34 18.5C34 21.5376 31.5376 24 28.5 24H25.5C24.1193 24 23 22.8807 23 21.5V15.5Z" fill="#9B1B30"/>
+              <path d="M37 6C37 9 39.5 11 42 11C39.5 11 37 13 37 16C37 13 34.5 11 32 11C34.5 11 37 9 37 6Z" fill="#B45309"/>
+            </svg>
+            <span style="font-size: 88px; font-weight: 900; letter-spacing: -0.04em; color: #380712;">Lexi</span>
+            <span style="font-size: 64px; color: #B45309; margin-top: -16px;">✦</span>
+          </div>
+
+          <h1 id="vs1-headline" style="font-size: 72px; font-weight: 900; line-height: 1.15; letter-spacing: -0.03em; color: #380712; margin-bottom: 24px;">
+            English Learning Reimagined.
+          </h1>
+          <p id="vs1-sub" style="font-size: 34px; font-weight: 700; color: #7F011F; letter-spacing: -0.01em; max-width: 800px; line-height: 1.4;">
+            No ads. No clutter. Systematic, natural English fluency.
+          </p>
+        </div>
+      </div>
+
+      <!-- SCENE 2: INTERFACE & CURRICULUM FLOW (4.5s – 10.5s) -->
+      <div id="v-scene2" class="scene clip" data-start="4.5" data-duration="6.0">
+        <div style="text-align: center; margin-bottom: 40px;">
+          <div id="vs2-tag" class="badge-pill" style="display: inline-block; padding: 10px 32px; font-size: 30px; margin-bottom: 16px; letter-spacing: 0.05em; text-transform: uppercase;">
+            CEFR A1 to B2 Pathway
+          </div>
+          <h2 id="vs2-headline" style="font-size: 64px; font-weight: 900; letter-spacing: -0.03em; color: #380712;">
+            Real Conversations Over Drills
+          </h2>
+        </div>
+
+        <div id="vs2-mock" class="app-frame-vert">
+          <img src="assets/screen-home.png" style="width: 100%; height: 100%; object-fit: cover; object-position: top;" alt="Lexi Home" />
+        </div>
+      </div>
+
+      <!-- SCENE 3: AI COACH & SPEAKING CONFIDENCE (10.5s – 16.0s) -->
+      <div id="v-scene3" class="scene clip" data-start="10.5" data-duration="5.5">
+        <div style="text-align: center; margin-bottom: 40px;">
+          <div id="vs3-tag" class="badge-pill" style="display: inline-block; padding: 10px 32px; font-size: 30px; margin-bottom: 16px; letter-spacing: 0.05em; text-transform: uppercase;">
+            Adaptive Voice & Feedback
+          </div>
+          <h2 id="vs3-headline" style="font-size: 64px; font-weight: 900; letter-spacing: -0.03em; color: #380712;">
+            Speak With Confidence
+          </h2>
+        </div>
+
+        <div id="vs3-mock" class="app-frame-vert">
+          <img src="assets/screen-practice.png" style="width: 100%; height: 100%; object-fit: cover; object-position: top;" alt="Lexi Practice" />
+        </div>
+      </div>
+
+      <!-- SCENE 4: OUTRO & CALL TO ACTION (16.0s – 20.0s) -->
+      <div id="v-scene4" class="scene clip" data-start="16.0" data-duration="4.0">
+        <div id="vs4-content" style="text-align: center; display: flex; flex-direction: column; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 30px;">
+            <svg width="120" height="120" viewBox="0 0 48 48" fill="none">
+              <rect x="4" y="4" width="40" height="40" rx="12" fill="#FAF6ED" stroke="#E6D8B5" stroke-width="2"/>
+              <path d="M15 13C15 11.8954 15.8954 11 17 11H19C20.1046 11 21 11.8954 21 13V27.5C21 28.3284 21.6716 29 22.5 29H32C33.1046 29 34 29.8954 34 31C34 32.1046 33.1046 33 32 33H19C16.7909 33 15 31.2091 15 29V13Z" fill="#7F011F"/>
+              <path d="M23 15.5C23 14.1193 24.1193 13 25.5 13H28.5C31.5376 13 34 15.4624 34 18.5C34 21.5376 31.5376 24 28.5 24H25.5C24.1193 24 23 22.8807 23 21.5V15.5Z" fill="#9B1B30"/>
+              <path d="M37 6C37 9 39.5 11 42 11C39.5 11 37 13 37 16C37 13 34.5 11 32 11C34.5 11 37 9 37 6Z" fill="#B45309"/>
+            </svg>
+            <span style="font-size: 96px; font-weight: 900; letter-spacing: -0.04em; color: #380712;">Lexi</span>
+            <span style="font-size: 72px; color: #B45309; margin-top: -16px;">✦</span>
+          </div>
+
+          <h2 style="font-size: 52px; font-weight: 800; color: #7F011F; margin-bottom: 40px;">
+            Your English Companion
+          </h2>
+
+          <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 48px; width: 100%; max-width: 500px;">
+            <div class="badge-pill" style="padding: 16px 36px; font-size: 32px; text-align: center;">100% Free</div>
+            <div class="badge-pill" style="padding: 16px 36px; font-size: 32px; text-align: center;">Private & Offline-First</div>
+            <div class="badge-pill" style="padding: 16px 36px; font-size: 32px; text-align: center;">Zero Ads</div>
+          </div>
+
+          <div id="vs4-btn" class="wine-btn" style="padding: 24px 64px; font-size: 34px; cursor: pointer; letter-spacing: -0.01em;">
+            Start Learning Today
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GSAP TIMELINE CHOREOGRAPHY (Contract Compliant) -->
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // Scene 1 Tweens (0s - 4.5s)
+      tl.fromTo("#vs1-logo", { scale: 0.9, opacity: 0.7 }, { scale: 1, opacity: 1, duration: 0.8, ease: "power2.out" }, 0.0);
+      tl.fromTo("#vs1-headline", { y: 20, opacity: 0.6 }, { y: 0, opacity: 1, duration: 0.8, ease: "power2.out" }, 0.0);
+      tl.fromTo("#vs1-sub", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power2.out" }, 0.8);
+      tl.to("#vs1-content", { opacity: 0, scale: 0.96, duration: 0.6, ease: "power2.in" }, 3.9);
+
+      // Scene 2 Tweens (4.5s - 10.5s)
+      tl.fromTo("#vs2-tag", { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "power2.out" }, 4.7);
+      tl.fromTo("#vs2-headline", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power2.out" }, 5.0);
+      tl.fromTo("#vs2-mock", { scale: 0.9, opacity: 0 }, { scale: 1, opacity: 1, duration: 1.0, ease: "power2.out" }, 5.3);
+      tl.to("#vs2-mock", { y: -16, duration: 2.0, ease: "sine.inOut", yoyo: true, repeat: 1 }, 6.8);
+      tl.to(["#vs2-tag", "#vs2-headline", "#vs2-mock"], { opacity: 0, y: -20, duration: 0.5, ease: "power2.in" }, 10.0);
+
+      // Scene 3 Tweens (10.5s - 16.0s)
+      tl.fromTo("#vs3-tag", { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "power2.out" }, 10.7);
+      tl.fromTo("#vs3-headline", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power2.out" }, 11.0);
+      tl.fromTo("#vs3-mock", { scale: 0.9, opacity: 0 }, { scale: 1, opacity: 1, duration: 1.0, ease: "power2.out" }, 11.3);
+      tl.to(["#vs3-tag", "#vs3-headline", "#vs3-mock"], { opacity: 0, scale: 0.96, duration: 0.5, ease: "power2.in" }, 15.5);
+
+      // Scene 4 Tweens (16.0s - 20.0s)
+      tl.fromTo("#vs4-content", { scale: 0.88, opacity: 0 }, { scale: 1, opacity: 1, duration: 1.0, ease: "power2.out" }, 16.2);
+      tl.fromTo("#vs4-btn", { scale: 0.95 }, { scale: 1.05, duration: 1.2, yoyo: true, repeat: 1, ease: "sine.inOut" }, 17.2);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

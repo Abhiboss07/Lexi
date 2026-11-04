@@ -1,0 +1,389 @@
+{
+  "ok": true,
+  "strict": false,
+  "browserSkipped": false,
+  "lint": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 4,
+    "infoCount": 0,
+    "findings": [
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"scene1\"> is a timeline element that contains nested <div id=\"s1-content\">. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#scene1",
+        "dataAttributes": {},
+        "sourceFile": "/home/abhiboss/Projects/Lexi/artifacts/launch-video/lexi-launch-16x9/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"scene1\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"scene2\"> is a timeline element that contains nested <div>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#scene2",
+        "dataAttributes": {},
+        "sourceFile": "/home/abhiboss/Projects/Lexi/artifacts/launch-video/lexi-launch-16x9/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"scene2\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"scene3\"> is a timeline element that contains nested <div>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#scene3",
+        "dataAttributes": {},
+        "sourceFile": "/home/abhiboss/Projects/Lexi/artifacts/launch-video/lexi-launch-16x9/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"scene3\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"scene4\"> is a timeline element that contains nested <div id=\"s4-content\">. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#scene4",
+        "dataAttributes": {},
+        "sourceFile": "/home/abhiboss/Projects/Lexi/artifacts/launch-video/lexi-launch-16x9/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"scene4\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      }
+    ],
+    "filesScanned": 4
+  },
+  "runtime": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": []
+  },
+  "layout": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "duration": 20,
+    "samples": [
+      1.111,
+      3.333,
+      5.556,
+      7.778,
+      10,
+      12.222,
+      14.444,
+      16.667,
+      18.889
+    ],
+    "transitionSamples": [],
+    "transitionSamplesDropped": 0,
+    "tolerance": 2,
+    "totalIssueCount": 0,
+    "truncated": false
+  },
+  "motion": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": false,
+    "samples": 0
+  },
+  "contrast": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 2,
+    "infoCount": 0,
+    "findings": [
+      {
+        "code": "contrast_aa_failure",
+        "severity": "warning",
+        "message": "Contrast is 2.68:1; WCAG AA requires 3:1.",
+        "text": "✦",
+        "fg": "rgb(217,119,6)",
+        "bg": "rgb(245,235,208)",
+        "ratio": 2.68,
+        "requiredRatio": 3,
+        "suggestedColor": "rgb(204,112,6)",
+        "large": true,
+        "selector": "div > div:nth-of-type(1) > div > div > span:nth-of-type(2)",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 1063.2293701171875,
+          "y": 426.2112121582031,
+          "width": 45.240966796875,
+          "height": 68.9862060546875
+        },
+        "time": 1.111,
+        "times": [
+          1.111
+        ]
+      },
+      {
+        "code": "contrast_aa_failure",
+        "severity": "warning",
+        "message": "Contrast is 2.68:1; WCAG AA requires 3:1.",
+        "text": "✦",
+        "fg": "rgb(217,119,6)",
+        "bg": "rgb(245,235,208)",
+        "ratio": 2.68,
+        "requiredRatio": 3,
+        "suggestedColor": "rgb(204,112,6)",
+        "large": true,
+        "selector": "div > div:nth-of-type(4) > div > div:nth-of-type(1) > span:nth-of-type(2)",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 1074.0625,
+          "y": 370,
+          "width": 50.28125,
+          "height": 76
+        },
+        "time": 18.889,
+        "times": [
+          18.889
+        ]
+      }
+    ],
+    "enabled": true,
+    "samples": [
+      1.111,
+      5.556,
+      10,
+      14.444,
+      18.889
+    ],
+    "checked": 20,
+    "passed": 18
+  },
+  "craft": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 4,
+    "infoCount": 0,
+    "findings": [
+      {
+        "code": "first_frame_empty",
+        "severity": "warning",
+        "message": "Frame 0 shows only the background, and the first frame is the thumbnail on social players: have the title or key image already on screen at 0 s instead of entering from nothing; see references/review.md.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0
+      },
+      {
+        "code": "film_silent",
+        "severity": "warning",
+        "message": "This 20 s film has no sound source (no <audio>, no <video> with sound): add a music bed and sounds on the visible actions unless the person asked for silence; see references/sound.md.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0
+      },
+      {
+        "code": "dead_stretch",
+        "severity": "warning",
+        "message": "Nothing on screen changes for 3.38 s (6.63–10.00 s): start the next move within 3 s, or put data-hold on the element whose stillness is deliberate; see references/motion.md.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 6.625,
+        "seconds": 3.375,
+        "floorSeconds": 3,
+        "until": 10
+      },
+      {
+        "code": "text_below_floor",
+        "severity": "warning",
+        "message": "Type floor is 28 px (2.6% of the 1080 px short side, what a phone can read) and 11 text elements stay under it for 0.5 s or more, the smallest \"Fluency 98%\" at 13 px: set reading text to at least 28 px, or put data-layout-ignore on text that is texture rather than reading; see references/look.md.",
+        "text": "Fluency 98%",
+        "selector": "#s3-card > div:nth-of-type(2) > span:nth-of-type(1)",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 1006.82,
+          "y": 751,
+          "width": 81.75,
+          "height": 16
+        },
+        "time": 12,
+        "times": [
+          1.375,
+          4.875,
+          10.875,
+          12,
+          12,
+          12,
+          12,
+          16.5,
+          16.5,
+          16.5,
+          16.5
+        ],
+        "fontPx": 12.79,
+        "floorPx": 28,
+        "seconds": 4,
+        "elements": [
+          {
+            "selector": "#s3-card > div:nth-of-type(2) > span:nth-of-type(1)",
+            "text": "Fluency 98%",
+            "fontPx": 12.79,
+            "time": 12,
+            "seconds": 4
+          },
+          {
+            "selector": "#s3-card > div:nth-of-type(2) > span:nth-of-type(2)",
+            "text": "CEFR B1 Active",
+            "fontPx": 12.79,
+            "time": 12,
+            "seconds": 4
+          },
+          {
+            "selector": "#s3-card > div:nth-of-type(1) > span:nth-of-type(2)",
+            "text": "AI Conversation Coach",
+            "fontPx": 13.78,
+            "time": 12,
+            "seconds": 4
+          },
+          {
+            "selector": "#s3-tag",
+            "text": "Adaptive Speech & Voice",
+            "fontPx": 14.76,
+            "time": 10.875,
+            "seconds": 5.125
+          },
+          {
+            "selector": "#s2-tag",
+            "text": "CEFR A1 to B2 Pathway",
+            "fontPx": 15,
+            "time": 4.875,
+            "seconds": 5.625
+          },
+          {
+            "selector": "#s4-content > div:nth-of-type(2) > div:nth-of-type(1)",
+            "text": "100% Free",
+            "fontPx": 15.34,
+            "time": 16.5,
+            "seconds": 3.5
+          },
+          {
+            "selector": "#s4-content > div:nth-of-type(2) > div:nth-of-type(2)",
+            "text": "Private & Offline-First",
+            "fontPx": 15.34,
+            "time": 16.5,
+            "seconds": 3.5
+          },
+          {
+            "selector": "#s4-content > div:nth-of-type(2) > div:nth-of-type(3)",
+            "text": "Zero Ads",
+            "fontPx": 15.34,
+            "time": 16.5,
+            "seconds": 3.5
+          },
+          {
+            "selector": "#s3-card > p:nth-of-type(1)",
+            "text": "\"Your intonation was natural, and your choice of 'pleasure to meet you' was spot on!\"",
+            "fontPx": 19.68,
+            "time": 12,
+            "seconds": 4
+          },
+          {
+            "selector": "#s4-btn",
+            "text": "Start Learning Today",
+            "fontPx": 20.04,
+            "time": 16.5,
+            "seconds": 3.5
+          },
+          {
+            "selector": "#s1-sub",
+            "text": "No ads. No clutter. Systematic, natural English fluency.",
+            "fontPx": 25.51,
+            "time": 1.375,
+            "seconds": 3.125
+          }
+        ]
+      }
+    ],
+    "enabled": true,
+    "step": 0.125,
+    "samples": 160
+  },
+  "audio": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 1,
+    "findings": [
+      {
+        "code": "audio_none",
+        "severity": "info",
+        "message": "The film has no sound: no clip in it plays audio.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0
+      }
+    ]
+  },
+  "hdr": {
+    "autoPromotion": null,
+    "inspection": "available"
+  },
+  "snapshots": {
+    "enabled": false,
+    "files": [],
+    "times": [],
+    "findingFiles": []
+  }
+}

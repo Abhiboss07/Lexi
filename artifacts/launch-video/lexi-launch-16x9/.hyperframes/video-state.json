@@ -1,0 +1,314 @@
+{
+  "version": 1,
+  "historyId": "aec277f0-e3c4-4316-9736-610af96208db",
+  "currentRevision": "de544212-c41f-411c-aa2d-98e59c0deb4b",
+  "pendingChanges": false,
+  "files": {
+    "AGENTS.md": {
+      "hash": "3bb22af1d0093dfb5a59d3cc884ee63d4e3b8b535d413a0e22139358339c01a6",
+      "content": "/home/abhiboss/.cache/hyperframes/history/aec277f0-e3c4-4316-9736-610af96208db/blobs/3b/3bb22af1d0093dfb5a59d3cc884ee63d4e3b8b535d413a0e22139358339c01a6"
+    },
+    "CLAUDE.md": {
+      "hash": "3bb22af1d0093dfb5a59d3cc884ee63d4e3b8b535d413a0e22139358339c01a6",
+      "content": "/home/abhiboss/.cache/hyperframes/history/aec277f0-e3c4-4316-9736-610af96208db/blobs/3b/3bb22af1d0093dfb5a59d3cc884ee63d4e3b8b535d413a0e22139358339c01a6"
+    },
+    "assets/figma-cursors.svg": {
+      "hash": "fc502bfd3a3068bdbcf9eae4e6db8d24961ade74c784f2874b087042c24dab2a",
+      "content": "/home/abhiboss/.cache/hyperframes/history/aec277f0-e3c4-4316-9736-610af96208db/blobs/fc/fc502bfd3a3068bdbcf9eae4e6db8d24961ade74c784f2874b087042c24dab2a"
+    },
+    "assets/figma-logo-pieces.svg": {
+      "hash": "33d1ccf5e60c6c6860ad0d3817bd1fa21a02e165c96319ee96a56f35b39aafd7",
+      "content": "/home/abhiboss/.cache/hyperframes/history/aec277f0-e3c4-4316-9736-610af96208db/blobs/33/33d1ccf5e60c6c6860ad0d3817bd1fa21a02e165c96319ee96a56f35b39aafd7"
+    },
+    "assets/figma-logo-pills.svg": {
+      "hash": "0260247a846428be258ffa69a70cb94cb03de3dd99de9cb30d5df54ae31638ba",
+      "content": "/home/abhiboss/.cache/hyperframes/history/aec277f0-e3c4-4316-9736-610af96208db/blobs/02/0260247a846428be258ffa69a70cb94cb03de3dd99de9cb30d5df54ae31638ba"
+    },
+    "assets/screen-home.png": {
+      "hash": "5446361d883d03ee3e7b23910edb8a220f454c854cd8145665510dd0c281032c",
+      "content": "/home/abhiboss/.cache/hyperframes/history/aec277f0-e3c4-4316-9736-610af96208db/blobs/54/5446361d883d03ee3e7b23910edb8a220f454c854cd8145665510dd0c281032c"
+    },
+    "assets/screen-practice.png": {
+      "hash": "ccab97f4c67d9475177801424ffd381fa614949fad1694ed4d2af013fed46e1e",
+      "content": "/home/abhiboss/.cache/hyperframes/history/aec277f0-e3c4-4316-9736-610af96208db/blobs/cc/ccab97f4c67d9475177801424ffd381fa614949fad1694ed4d2af013fed46e1e"
+    },
+    "assets/screen-progress.png": {
+      "hash": "8d6c6f33a6971f8548372cfb85f2a04392cb396f82bb1ebf13f4ba35f3bc3670",
+      "content": "/home/abhiboss/.cache/hyperframes/history/aec277f0-e3c4-4316-9736-610af96208db/blobs/8d/8d6c6f33a6971f8548372cfb85f2a04392cb396f82bb1ebf13f4ba35f3bc3670"
+    },
+    "assets/screen-splash.png": {
+      "hash": "0f99ea42427b4e2429e5f5d5cdfd6dd1f2e247b8277a4f97269bb36285e81c6d",
+      "content": "/home/abhiboss/.cache/hyperframes/history/aec277f0-e3c4-4316-9736-610af96208db/blobs/0f/0f99ea42427b4e2429e5f5d5cdfd6dd1f2e247b8277a4f97269bb36285e81c6d"
+    },
+    "compositions/scene1-logo-intro.html": {
+      "hash": "286cb47166409ff8e4568ce06a0c73b056bb843bfa46e0c70bdeff131d87a833",
+      "content": "/home/abhiboss/.cache/hyperframes/history/aec277f0-e3c4-4316-9736-610af96208db/blobs/28/286cb47166409ff8e4568ce06a0c73b056bb843bfa46e0c70bdeff131d87a833"
+    },
+    "compositions/scene2-4-canvas.html": {
+      "hash": "4e9ddf830440b5fefffe0deb78e39923cfeb1d09dcc6d9faea84a1604f5b3ca5",
+      "content": "/home/abhiboss/.cache/hyperframes/history/aec277f0-e3c4-4316-9736-610af96208db/blobs/4e/4e9ddf830440b5fefffe0deb78e39923cfeb1d09dcc6d9faea84a1604f5b3ca5"
+    },
+    "compositions/scene5-logo-outro.html": {
+      "hash": "2abf2a0e8c52b9539ec1efe0b6cb35bb6c2fff0237b5b5e154a1c3a9f53421f1",
+      "content": "/home/abhiboss/.cache/hyperframes/history/aec277f0-e3c4-4316-9736-610af96208db/blobs/2a/2abf2a0e8c52b9539ec1efe0b6cb35bb6c2fff0237b5b5e154a1c3a9f53421f1"
+    },
+    "hyperframes.json": {
+      "hash": "53dbce1e19aa713cbb12ee0bc4d206143b45ab15e6ffbfcaa8f69572d4d24d50",
+      "content": "/home/abhiboss/.cache/hyperframes/history/aec277f0-e3c4-4316-9736-610af96208db/blobs/53/53dbce1e19aa713cbb12ee0bc4d206143b45ab15e6ffbfcaa8f69572d4d24d50"
+    },
+    "hyperframes.lock.json": {
+      "hash": "cc4ee70b845e428621a15bbe54ebdf22c9c2497565685c9af5017fcceb2b3b2a",
+      "content": "/home/abhiboss/.cache/hyperframes/history/aec277f0-e3c4-4316-9736-610af96208db/blobs/cc/cc4ee70b845e428621a15bbe54ebdf22c9c2497565685c9af5017fcceb2b3b2a"
+    },
+    "index.html": {
+      "hash": "3a119f160d0b9a868d1effe930d031ad8db66a26eaf5c3c34f5ebe7bba8a0ccb",
+      "content": "/home/abhiboss/.cache/hyperframes/history/aec277f0-e3c4-4316-9736-610af96208db/blobs/3a/3a119f160d0b9a868d1effe930d031ad8db66a26eaf5c3c34f5ebe7bba8a0ccb"
+    },
+    "meta.json": {
+      "hash": "7f273d78c2e788f362c4d899934fc178acf69a463065e44220db9559722d1cd0",
+      "content": "/home/abhiboss/.cache/hyperframes/history/aec277f0-e3c4-4316-9736-610af96208db/blobs/7f/7f273d78c2e788f362c4d899934fc178acf69a463065e44220db9559722d1cd0"
+    },
+    "package.json": {
+      "hash": "c28ee751011026c6cf27dd71174bfca8e90a19984bf1666af9750b49f44577df",
+      "content": "/home/abhiboss/.cache/hyperframes/history/aec277f0-e3c4-4316-9736-610af96208db/blobs/c2/c28ee751011026c6cf27dd71174bfca8e90a19984bf1666af9750b49f44577df"
+    }
+  },
+  "revisions": {
+    "6f405a1c-e5ce-48f9-8fb0-d8b6ec27b223": {
+      "actor": {
+        "kind": "outside",
+        "name": "Outside"
+      },
+      "label": "Changed outside the app",
+      "startedAt": 1793784124129,
+      "endedAt": 1793784124129,
+      "files": {
+        "index.html": {
+          "before": "/home/abhiboss/.cache/hyperframes/history/aec277f0-e3c4-4316-9736-610af96208db/blobs/8c/8c710d6e835181eed77737cbe1ab55254fdd3992e9b2631b7739fc8874f51c90",
+          "after": "/home/abhiboss/.cache/hyperframes/history/aec277f0-e3c4-4316-9736-610af96208db/blobs/c6/c6afac6033710564f0df7c2712d75c9283f48d3aa90bf894135f26419a568731"
+        }
+      }
+    },
+    "de544212-c41f-411c-aa2d-98e59c0deb4b": {
+      "actor": {
+        "kind": "outside",
+        "name": "Outside"
+      },
+      "label": "Changed outside the app",
+      "startedAt": 1793784207601,
+      "endedAt": 1793784207602,
+      "files": {
+        "index.html": {
+          "before": "/home/abhiboss/.cache/hyperframes/history/aec277f0-e3c4-4316-9736-610af96208db/blobs/c6/c6afac6033710564f0df7c2712d75c9283f48d3aa90bf894135f26419a568731",
+          "after": "/home/abhiboss/.cache/hyperframes/history/aec277f0-e3c4-4316-9736-610af96208db/blobs/3a/3a119f160d0b9a868d1effe930d031ad8db66a26eaf5c3c34f5ebe7bba8a0ccb"
+        }
+      }
+    }
+  },
+  "checks": {
+    "latest": {
+      "revision": "de544212-c41f-411c-aa2d-98e59c0deb4b",
+      "id": "13a990c0-58bd-43a7-bb77-443e0b28bdaa"
+    },
+    "revisions": {
+      "6f405a1c-e5ce-48f9-8fb0-d8b6ec27b223": [
+        {
+          "id": "217b095a-efea-493f-8c4c-74beaba1352b",
+          "scope": "project",
+          "report": "/home/abhiboss/Projects/Lexi/artifacts/launch-video/lexi-launch-16x9/.hyperframes/artifacts/checks/217b095a-efea-493f-8c4c-74beaba1352b.json",
+          "metadata": {
+            "ok": true,
+            "browserSkipped": false,
+            "options": {
+              "samples": 9,
+              "atTransitions": false,
+              "maxIssues": 80,
+              "collapseStatic": true,
+              "tolerance": 2,
+              "timeout": 45000,
+              "contrast": true,
+              "strict": false,
+              "snapshots": false,
+              "browserGpuMode": "auto"
+            }
+          },
+          "createdAt": 1793784128327,
+          "contentHash": "e2420b7dd593a46e84fc9a2bc42e14efabfe142ae9b7e83bc28419df9fdb2704",
+          "revision": "6f405a1c-e5ce-48f9-8fb0-d8b6ec27b223",
+          "inputFingerprint": "cd6a3d43f48312f29bb8dd170437ef5434c31d40b8f4a168aabc630bde098287",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        }
+      ],
+      "de544212-c41f-411c-aa2d-98e59c0deb4b": [
+        {
+          "id": "13a990c0-58bd-43a7-bb77-443e0b28bdaa",
+          "scope": "project",
+          "report": "/home/abhiboss/Projects/Lexi/artifacts/launch-video/lexi-launch-16x9/.hyperframes/artifacts/checks/13a990c0-58bd-43a7-bb77-443e0b28bdaa.json",
+          "metadata": {
+            "ok": true,
+            "browserSkipped": false,
+            "options": {
+              "samples": 9,
+              "atTransitions": false,
+              "maxIssues": 80,
+              "collapseStatic": true,
+              "tolerance": 2,
+              "timeout": 45000,
+              "contrast": true,
+              "strict": false,
+              "snapshots": false,
+              "browserGpuMode": "auto"
+            }
+          },
+          "createdAt": 1793784210736,
+          "contentHash": "291284652eafd603c923d319b350ec4486bfe02f2f77d805dd0d123b0fe9675a",
+          "revision": "de544212-c41f-411c-aa2d-98e59c0deb4b",
+          "inputFingerprint": "bc3af49f0882c083b01ac1ee64ee9994493700a7881f0d7e926f3836201d9a43",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        }
+      ]
+    },
+    "unversioned": [
+      {
+        "id": "c69a6b0e-c2c9-4a8b-a859-f196a66ab982",
+        "scope": "project",
+        "report": "/home/abhiboss/Projects/Lexi/artifacts/launch-video/lexi-launch-16x9/.hyperframes/artifacts/checks/c69a6b0e-c2c9-4a8b-a859-f196a66ab982.json",
+        "metadata": {
+          "ok": false,
+          "browserSkipped": false,
+          "options": {
+            "samples": 9,
+            "atTransitions": false,
+            "maxIssues": 80,
+            "collapseStatic": true,
+            "tolerance": 2,
+            "timeout": 45000,
+            "contrast": true,
+            "strict": false,
+            "snapshots": false,
+            "browserGpuMode": "auto"
+          }
+        },
+        "createdAt": 1793784073409,
+        "contentHash": "909c28430333bf01d1f1775265a46b14fb7266cca68fab84b9c3188b4f398db2",
+        "revision": null,
+        "inputFingerprint": "28cc45cf839d9969635a19a5afff4dc492af9fcd7d71de48e7d42e93f669d623",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      }
+    ]
+  },
+  "snapshots": {
+    "latest": {
+      "revision": "de544212-c41f-411c-aa2d-98e59c0deb4b",
+      "id": "d3977764-ea76-4f76-94eb-bb965819db34-4"
+    },
+    "revisions": {
+      "de544212-c41f-411c-aa2d-98e59c0deb4b": [
+        {
+          "scope": "full",
+          "id": "d3977764-ea76-4f76-94eb-bb965819db34-0",
+          "image": "/home/abhiboss/Projects/Lexi/artifacts/launch-video/lexi-launch-16x9/.hyperframes/artifacts/snapshots/f859ac94-7824-4192-bb94-0abdd70bac54/frame-00-at-1.5s.png",
+          "time": 1.5,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793784249202,
+          "contentHash": "f442d4cc0c7ce1ca5dd8f162197f0441bb480fc8c15e87f42da606fee1bb8083",
+          "revision": "de544212-c41f-411c-aa2d-98e59c0deb4b",
+          "inputFingerprint": "bc3af49f0882c083b01ac1ee64ee9994493700a7881f0d7e926f3836201d9a43",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "d3977764-ea76-4f76-94eb-bb965819db34-1",
+          "image": "/home/abhiboss/Projects/Lexi/artifacts/launch-video/lexi-launch-16x9/.hyperframes/artifacts/snapshots/f859ac94-7824-4192-bb94-0abdd70bac54/frame-01-at-7s.png",
+          "time": 7,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793784249202,
+          "contentHash": "992f6a3bdb7b4ba71828e2313aaf8a2504b6aa250ca63d94f012892c8788973b",
+          "revision": "de544212-c41f-411c-aa2d-98e59c0deb4b",
+          "inputFingerprint": "bc3af49f0882c083b01ac1ee64ee9994493700a7881f0d7e926f3836201d9a43",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "d3977764-ea76-4f76-94eb-bb965819db34-2",
+          "image": "/home/abhiboss/Projects/Lexi/artifacts/launch-video/lexi-launch-16x9/.hyperframes/artifacts/snapshots/f859ac94-7824-4192-bb94-0abdd70bac54/frame-02-at-13s.png",
+          "time": 13,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793784249202,
+          "contentHash": "55d40528f7df806a13c9f586be05f299ac6e90b1e825267bbd19058f32fbeecc",
+          "revision": "de544212-c41f-411c-aa2d-98e59c0deb4b",
+          "inputFingerprint": "bc3af49f0882c083b01ac1ee64ee9994493700a7881f0d7e926f3836201d9a43",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "d3977764-ea76-4f76-94eb-bb965819db34-3",
+          "image": "/home/abhiboss/Projects/Lexi/artifacts/launch-video/lexi-launch-16x9/.hyperframes/artifacts/snapshots/f859ac94-7824-4192-bb94-0abdd70bac54/frame-03-at-18.5s.png",
+          "time": 18.5,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793784249202,
+          "contentHash": "1a2b3145a8e386a17bc1ba1e0d1a9bdce3377469d9e210216e0792bf11ef734c",
+          "revision": "de544212-c41f-411c-aa2d-98e59c0deb4b",
+          "inputFingerprint": "bc3af49f0882c083b01ac1ee64ee9994493700a7881f0d7e926f3836201d9a43",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "d3977764-ea76-4f76-94eb-bb965819db34-4",
+          "image": "/home/abhiboss/Projects/Lexi/artifacts/launch-video/lexi-launch-16x9/.hyperframes/artifacts/snapshots/f859ac94-7824-4192-bb94-0abdd70bac54/frame-04-at-19.75s.png",
+          "time": 19.75,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793784249202,
+          "contentHash": "07287c5e6d01f47094d97dc7326a8814f3295c78d0e7f2f0d7f653e5f50f763a",
+          "revision": "de544212-c41f-411c-aa2d-98e59c0deb4b",
+          "inputFingerprint": "bc3af49f0882c083b01ac1ee64ee9994493700a7881f0d7e926f3836201d9a43",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        }
+      ]
+    },
+    "unversioned": []
+  }
+}
