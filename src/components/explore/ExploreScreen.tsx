@@ -189,8 +189,11 @@ export const ExploreScreen: React.FC<ExploreScreenProps> = ({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={(e) => {
+              e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }}
             placeholder="Search topics, grammar, phrases..."
-            className="w-full pl-10 pr-9 py-2.5 rounded-full bg-white border border-[#E4E7F7] text-[13px] text-[#15164B] placeholder:text-[#8E93B8] focus:border-[#545CA6] focus:ring-2 focus:ring-[#545CA6]/20 shadow-xs transition-all outline-none"
+            className="w-full pl-10 pr-9 py-2.5 rounded-full bg-white border border-[#E6D8B5] text-[16px] sm:text-[14px] text-[#380712] placeholder:text-[#8A525E] focus:border-[#7F011F] focus:ring-2 focus:ring-[#7F011F]/20 shadow-xs transition-all outline-none"
             aria-label="Search learning content"
           />
           {searchQuery && (

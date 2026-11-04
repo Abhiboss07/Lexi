@@ -35,6 +35,7 @@ import type {
 import { conversationCoachAIService } from '../../services/aiProviderService';
 import { mistakeTrackingService } from '../../services/mistakeTrackingService';
 import { useModalFocusTrap } from '../../hooks/useModalFocusTrap';
+import { useVisualViewport, scrollInputIntoView } from '../../hooks/useVisualViewport';
 
 export type ConversationScenario = ConversationScenarioDefinition;
 export const CONVERSATION_SCENARIOS = CONVERSATION_SCENARIOS_DATA;
@@ -108,6 +109,8 @@ export const ConversationCoachModal: React.FC<ConversationCoachModalProps> = ({
   );
 
   const chatBottomRef = useRef<HTMLDivElement>(null);
+  const textInputRef = useRef<HTMLInputElement>(null);
+  const { isKeyboardVisible, viewportHeight } = useVisualViewport();
 
   // Filtered scenarios
   const filteredScenarios = CONVERSATION_SCENARIOS_DATA.filter((s) => {
@@ -398,7 +401,13 @@ export const ConversationCoachModal: React.FC<ConversationCoachModalProps> = ({
       aria-modal="true"
       aria-labelledby="coach-modal-title"
     >
-      <div className="relative w-full max-w-[680px] bg-white rounded-3xl shadow-2xl border border-[#D5D8EE] flex flex-col h-[94vh] max-h-[860px] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div 
+        className="relative w-full max-w-[680px] bg-white rounded-3xl shadow-2xl border border-[#E6D8B5] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 hardware-accelerated"
+        style={{
+          height: isKeyboardVisible ? `${Math.min(viewportHeight - 16, 860)}px` : '94vh',
+          maxHeight: isKeyboardVisible ? `${Math.min(viewportHeight - 16, 860)}px` : '860px',
+        }}
+      >
         
         {/* Modal Header */}
         <header className="p-3.5 sm:p-4 bg-white border-b border-[#ECEEFE] flex items-center justify-between shrink-0">
@@ -929,9 +938,16 @@ export const ConversationCoachModal: React.FC<ConversationCoachModalProps> = ({
 
               {/* Text Input */}
               <input
+                ref={textInputRef}
                 type="text"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
+                onFocus={() => {
+                  scrollInputIntoView(textInputRef.current);
+                  if (chatBottomRef.current) {
+                    setTimeout(() => chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 120);
+                  }
+                }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
@@ -940,7 +956,7 @@ export const ConversationCoachModal: React.FC<ConversationCoachModalProps> = ({
                 }}
                 placeholder="Type your reply in English..."
                 aria-label="Type your reply in English"
-                className="flex-1 p-2.5 rounded-2xl border border-[#D5D8EE] text-[13px] text-[#15164B] outline-hidden focus:border-[#4F46E5] placeholder-[#8E93B8]"
+                className="flex-1 p-2.5 rounded-2xl border border-[#E6D8B5] text-[16px] text-[#380712] outline-hidden focus:border-[#7F011F] placeholder-[#8A525E]"
               />
 
               {/* Send Button */}
@@ -948,7 +964,7 @@ export const ConversationCoachModal: React.FC<ConversationCoachModalProps> = ({
                 type="button"
                 onClick={() => handleSendMessage()}
                 disabled={!inputText.trim() || isAiTyping}
-                className="w-10 h-10 rounded-2xl bg-[#15164B] hover:bg-[#0E1038] text-white flex items-center justify-center disabled:opacity-40 transition-all cursor-pointer shrink-0 shadow-xs"
+                className="w-10 h-10 rounded-2xl bg-[#7F011F] hover:bg-[#630018] text-white flex items-center justify-center disabled:opacity-40 transition-all cursor-pointer shrink-0 shadow-xs"
                 aria-label="Send message"
               >
                 <Send className="w-4.5 h-4.5 stroke-[2.2]" />

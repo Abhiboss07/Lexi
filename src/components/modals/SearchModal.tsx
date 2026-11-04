@@ -48,27 +48,32 @@ export const SearchModal: React.FC<SearchModalProps> = ({
   return (
     <div 
       ref={modalRef}
-      className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 backdrop-blur-xs p-4 pt-16 animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 backdrop-blur-xs p-3 sm:p-4 pt-4 sm:pt-16 animate-in fade-in duration-150 hardware-accelerated"
       role="dialog"
       aria-modal="true"
       aria-label="Search curriculum lessons and studios"
     >
-      <div className="w-full max-w-[480px] bg-white rounded-3xl p-5 shadow-2xl border border-[#ECEEFE]">
+      <div className="w-full max-w-[480px] bg-white rounded-3xl p-4 sm:p-5 shadow-2xl border border-[#E6D8B5]">
         {/* Search Input Bar */}
-        <div className="flex items-center gap-3 pb-3 border-b border-[#ECEEFE]">
-          <Search className="w-5 h-5 text-[#646AA4] shrink-0" aria-hidden="true" />
+        <div className="flex items-center gap-3 pb-3 border-b border-[#EFE6D2]">
+          <Search className="w-5 h-5 text-[#7F011F] shrink-0" aria-hidden="true" />
           <input
             ref={inputRef}
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            onFocus={() => {
+              if (inputRef.current) {
+                inputRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+            }}
             placeholder="Search grammar, stories, topics..."
             aria-label="Search curriculum query"
-            className="w-full text-[15px] font-medium text-[#15164B] placeholder:text-[#5A5F8A] focus:outline-hidden"
+            className="w-full text-[16px] font-medium text-[#380712] placeholder:text-[#8A525E] focus:outline-hidden"
           />
           <button
             onClick={onClose}
-            className="min-w-[44px] min-h-[44px] rounded-full bg-[#F4F5FD] hover:bg-[#E8EBFB] flex items-center justify-center text-[#15164B] transition-colors cursor-pointer"
+            className="min-w-[44px] min-h-[44px] rounded-full bg-[#FAF4E6] hover:bg-[#EFE4C4] flex items-center justify-center text-[#380712] transition-colors cursor-pointer"
             aria-label="Close search"
           >
             <X className="w-4 h-4" />
@@ -76,8 +81,8 @@ export const SearchModal: React.FC<SearchModalProps> = ({
         </div>
 
         {/* Results List */}
-        <div className="pt-3 max-h-[380px] overflow-y-auto space-y-1.5 no-scrollbar">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-[#8E93B8] px-2 block mb-1">
+        <div className="pt-3 max-h-[50vh] sm:max-h-[380px] overflow-y-auto space-y-1.5 no-scrollbar">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-[#8A525E] px-2 block mb-1">
             {query.trim() ? `Search Results (${searchResults.length})` : 'Recommended Topics & Studios'}
           </span>
           {searchResults.length > 0 ? (

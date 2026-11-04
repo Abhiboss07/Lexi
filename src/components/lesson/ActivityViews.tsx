@@ -559,10 +559,13 @@ export const WritingView: React.FC<{
           disabled={isSubmitted}
           value={text}
           onChange={(e) => onTextChange(e.target.value)}
+          onFocus={(e) => {
+            e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }}
           placeholder="Write your response in English here..."
-          className="w-full p-3.5 rounded-2xl border border-[#D5D8EE] focus:border-[#232655] text-[13.5px] text-[#1C2046] focus:outline-hidden focus:ring-1 focus:ring-[#232655] bg-white"
+          className="w-full p-3.5 rounded-2xl border border-[#E6D8B5] focus:border-[#7F011F] text-[16px] sm:text-[14px] text-[#380712] focus:outline-hidden focus:ring-1 focus:ring-[#7F011F] bg-white"
         />
-        <div className="flex justify-between items-center text-[11.5px] text-[#7D84B0] px-1 mt-1">
+        <div className="flex justify-between items-center text-[11.5px] text-[#8A525E] px-1 mt-1">
           <span>Min words: {activity.minWords}</span>
           <span>Current: {wordCount} words</span>
         </div>
